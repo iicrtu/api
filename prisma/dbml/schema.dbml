@@ -1,0 +1,1167 @@
+Enum "AccountStatus" {
+  "ACTIVE"
+  "PENDING_EMAIL_VERIFICATION"
+  "REJECTED"
+  "SUSPENDED"
+}
+
+Enum "AlumniConversionStatus" {
+  "PENDING"
+  "CONVERTED"
+  "FAILED"
+  "SKIPPED"
+}
+
+Enum "ApplicationActor" {
+  "STUDENT"
+  "ORGANIZATION"
+  "ADMIN"
+  "SYSTEM"
+}
+
+Enum "ApplicationStatus" {
+  "SUBMITTED"
+  "SHORTLISTED"
+  "INTERVIEWED"
+  "OFFERED"
+  "HIRED"
+  "REJECTED"
+  "WITHDRAWN"
+}
+
+Enum "AuthTokenType" {
+  "RESET_PASSWORD"
+  "EMAIL_VERIFY"
+}
+
+Enum "Branch" {
+  "AE"
+  "CE"
+  "Ch.E"
+  "CSE"
+  "EE"
+  "ECE"
+  "EIC"
+  "IT"
+  "ME"
+  "PE"
+  "PCE"
+  "P&I"
+}
+
+Enum "ChangeRequestStatus" {
+  "PENDING"
+  "APPROVED"
+  "REJECTED"
+  "CANCELLED"
+}
+
+Enum "CollaborationDirection" {
+  "INBOUND"
+  "OUTBOUND"
+}
+
+Enum "CollaborationStatus" {
+  "PENDING"
+  "ACCEPTED"
+  "DECLINED"
+  "CANCELLED"
+}
+
+Enum "CollaborationType" {
+  "ORGANIZE_EVENT"
+  "COLLABORATE_ON_EVENT"
+  "OTHER"
+}
+
+Enum "ConversionBatchStatus" {
+  "RUNNING"
+  "COMPLETED"
+  "COMPLETED_WITH_ERRORS"
+  "CANCELLED"
+}
+
+Enum "Degree" {
+  "DIPLOMA"
+  "ITI"
+  "BA"
+  "BSC"
+  "BCOM"
+  "BTECH_BE"
+  "BCA"
+  "BBA_BMS"
+  "BED"
+  "LLB"
+  "MBBS"
+  "BDS"
+  "BAMS_BHMS"
+  "BSC_NURSING"
+  "MA"
+  "MSC"
+  "MCOM"
+  "MTECH_ME"
+  "MCA"
+  "MBA_PGDM"
+  "MED"
+  "LLM"
+  "MD_MS"
+  "PHD"
+  "MPHIL"
+  "POST_DOC"
+  "OTHER"
+}
+
+Enum "EventMode" {
+  "ONLINE"
+  "OFFLINE"
+  "HYBRID"
+}
+
+Enum "EventStatus" {
+  "DRAFT"
+  "PUBLISHED"
+  "CANCELLED"
+}
+
+Enum "ExternalOpportunityStatus" {
+  "DRAFT"
+  "PUBLISHED"
+  "ARCHIVED"
+}
+
+Enum "ExternalOpportunityType" {
+  "HACKATHON"
+  "COMPETITION"
+  "INTERNSHIP"
+  "FELLOWSHIP"
+  "SCHOLARSHIP"
+  "PROGRAM"
+  "OTHER"
+}
+
+Enum "Industry" {
+  "TECHNOLOGY_AND_IT"
+  "MANAGEMENT_CONSULTING"
+  "BFSI"
+  "MARKETING_AND_ADVERTISING"
+  "E_COMMERCE"
+  "ENGINEERING_AND_MANUFACTURING"
+  "CONSTRUCTION_AND_REAL_ESTATE"
+  "LOGISTICS_AND_SUPPLY_CHAIN"
+  "HEALTHCARE_AND_PHARMA"
+  "EDUCATION_AND_EDTECH"
+  "LEGAL_SERVICES"
+  "MEDIA_AND_ENTERTAINMENT"
+  "HOSPITALITY_AND_TOURISM"
+  "DESIGN_AND_CREATIVE"
+  "OTHER"
+}
+
+Enum "InitiativeStatus" {
+  "DRAFT"
+  "PUBLISHED"
+}
+
+Enum "InviteStatus" {
+  "PENDING"
+  "ACCEPTED"
+  "DECLINED"
+  "CANCELLED"
+}
+
+Enum "JobStatus" {
+  "DRAFT"
+  "PUBLISHED"
+  "PAUSED"
+  "CLOSED"
+  "EXPIRED"
+  "REMOVED"
+}
+
+Enum "JobType" {
+  "INTERNSHIP"
+  "FULL_TIME"
+  "PART_TIME"
+  "FELLOWSHIP"
+}
+
+Enum "MentorshipStatus" {
+  "PENDING"
+  "ACCEPTED"
+  "DECLINED"
+  "CANCELLED"
+  "EXPIRED"
+}
+
+Enum "OrgSize" {
+  "SOLO"
+  "SMALL"
+  "MEDIUM"
+  "LARGE"
+  "ENTERPRISE"
+}
+
+Enum "ParticipationType" {
+  "INDIVIDUAL"
+  "TEAM"
+}
+
+Enum "PartnerType" {
+  "ECELL"
+  "COLLEGE"
+  "ENTREPRENEUR"
+  "MENTOR_SPEAKER"
+  "ALUMNI"
+}
+
+Enum "PatentStatus" {
+  "NONE"
+  "FILED"
+  "GRANTED"
+}
+
+Enum "PaymentStatus" {
+  "CREATED"
+  "PAID"
+  "FAILED"
+  "REFUND_PENDING"
+  "REFUNDED"
+}
+
+Enum "RegistrationActor" {
+  "STUDENT"
+  "ADMIN"
+  "SYSTEM"
+}
+
+Enum "RegistrationStatus" {
+  "DRAFT"
+  "PENDING_PAYMENT"
+  "CONFIRMED"
+  "CANCELLED"
+  "EXPIRED"
+}
+
+Enum "SessionRevokeReason" {
+  "LOGOUT"
+  "LOGOUT_ALL"
+  "REUSE_DETECTED"
+  "PASSWORD_CHANGE"
+  "SUSPENDED"
+  "ROLE_CHANGE"
+  "ADMIN"
+}
+
+Enum "SocialPlatform" {
+  "LINKEDIN"
+  "X"
+  "PORTFOLIO"
+  "GITHUB"
+  "YOUTUBE"
+  "TELEGRAM"
+  "WHATSAPP"
+  "DISCORD"
+  "FACEBOOK"
+  "REDDIT"
+  "PRODUCTHUNT"
+  "WELLFOUND"
+  "CRUNCHBASE"
+  "UPWORK"
+  "FIVERR"
+  "TOPTAL"
+  "BEHANCE"
+  "DRIBBBLE"
+  "INSTAGRAM"
+  "PINTEREST"
+  "MEDIUM"
+  "ARTSTATION"
+  "LINKTREE"
+  "LEETCODE"
+  "CODEFORCES"
+  "KAGGLE"
+  "STACKOVERFLOW"
+  "RESEARCHGATE"
+  "GOOGLE_SCHOLAR"
+  "SPOTIFY"
+  "SUBSTACK"
+  "OTHER"
+}
+
+Enum "StartupStage" {
+  "IDEA"
+  "MVP"
+  "EARLY_TRACTION"
+  "SCALING"
+}
+
+Enum "StatusChangedBy" {
+  "SYSTEM"
+  "ADMIN"
+  "USER"
+}
+
+Enum "UserRole" {
+  "STUDENT"
+  "ORGANIZATION"
+  "PARTNER"
+  "ADMIN"
+}
+
+Enum "VerificationStatus" {
+  "DRAFT"
+  "SUBMITTED"
+  "APPROVED"
+  "REJECTED"
+}
+
+Enum "WorkMode" {
+  "ONSITE"
+  "REMOTE"
+  "HYBRID"
+}
+
+Table "_prisma_migrations" {
+  "id" varchar(36) [pk, not null]
+  "checksum" varchar(64) [not null]
+  "finished_at" timestamptz
+  "migration_name" varchar(255) [not null]
+  "logs" text
+  "rolled_back_at" timestamptz
+  "started_at" timestamptz [not null, default: `now()`]
+  "applied_steps_count" int4 [not null, default: 0]
+}
+
+Table "User" {
+  "id" text [pk, not null]
+  "name" text [not null]
+  "email" text [unique, not null, check: `email = lower(btrim(email))`]
+  "emailVerifiedAt" timestamp
+  "password" text
+  "passwordChangedAt" timestamp
+  "googleId" text [unique]
+  "role" UserRole [unique, not null]
+  "status" AccountStatus [not null, default: 'PENDING_EMAIL_VERIFICATION']
+  "lastLoginAt" timestamp
+  "deletedAt" timestamp
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "updatedAt" timestamp [not null]
+
+  Checks {
+    `("deletedAt" IS NOT NULL) OR (password IS NOT NULL) OR ("googleId" IS NOT NULL)` [name: 'user_has_login_method']
+    `(status <> 'ACTIVE'::"AccountStatus") OR ("emailVerifiedAt" IS NOT NULL)` [name: 'user_active_requires_verified_email']
+  }
+
+  Indexes {
+    role [type: btree, name: "User_role_idx"]
+    status [type: btree, name: "User_status_idx"]
+  }
+}
+
+Table "Session" {
+  "id" text [pk, not null]
+  "userId" text [not null]
+  "refreshTokenHash" text [unique, not null]
+  "prevRefreshTokenHash" text [unique]
+  "rotatedAt" timestamp
+  "revokedAt" timestamp
+  "revokedReason" SessionRevokeReason
+  "lastUsedAt" timestamp
+  "expiresAt" timestamp [not null]
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "ipAddress" text
+  "userAgent" text
+
+  Indexes {
+    expiresAt [type: btree, name: "Session_expiresAt_idx"]
+    userId [type: btree, name: "Session_userId_idx"]
+  }
+}
+
+Table "AuthToken" {
+  "id" text [pk, not null]
+  "userId" text [not null]
+  "tokenHash" text [unique, not null]
+  "type" AuthTokenType [not null]
+  "expiresAt" timestamp [not null]
+  "usedAt" timestamp
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    expiresAt [type: btree, name: "AuthToken_expiresAt_idx"]
+    (userId, type) [type: btree, name: "AuthToken_userId_type_idx"]
+  }
+}
+
+Table "StatusHistory" {
+  "id" text [pk, not null]
+  "userId" text [not null]
+  "fromStatus" AccountStatus
+  "toStatus" AccountStatus [not null]
+  "changedBy" StatusChangedBy [not null]
+  "changedById" text
+  "reason" text
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (userId, createdAt) [type: btree, name: "StatusHistory_userId_createdAt_idx"]
+  }
+}
+
+Table "Student" {
+  "id" text [pk, not null]
+  "userId" text [unique, not null]
+  "fullName" text
+  "profileImage" text
+  "location" text [check: `(location IS NULL) OR (char_length(location) <= 150)`]
+  "isRTUStudent" bool
+  "collegeCode" text
+  "collegeName" text
+  "course" Degree
+  "branch" Branch
+  "graduationYear" int4 [check: `("graduationYear" IS NULL) OR (("graduationYear" >= 2000) AND ("graduationYear" <= 2100))`]
+  "crNo" text [check: `("crNo" IS NULL) OR ("crNo" = upper(btrim("crNo")))`, check: `("crNo" IS NULL) OR (btrim("crNo") <> ''::text)`]
+  "rollNo" text [check: `("rollNo" IS NULL) OR (btrim("rollNo") <> ''::text)`, check: `("rollNo" IS NULL) OR ("rollNo" = upper(btrim("rollNo")))`]
+  "phone" text [check: `(phone IS NULL) OR (phone ~ '^\+[1-9][0-9]{7,14}$'::text)`]
+  "alternatePhone" text [check: `("alternatePhone" IS NULL) OR ("alternatePhone" ~ '^\+[1-9][0-9]{7,14}$'::text)`]
+  "alternateEmail" text [check: `("alternateEmail" IS NULL) OR ("alternateEmail" = lower(btrim("alternateEmail")))`]
+  "isOnboardingComplete" bool [not null, default: false]
+  "isActive" bool [not null, default: true]
+  "alumniConvertedAt" timestamp
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "updatedAt" timestamp [not null]
+
+  Checks {
+    `(branch IS NULL) OR (COALESCE("isRTUStudent", false) AND (NOT (course IS DISTINCT FROM 'BTECH_BE'::"Degree")))` [name: 'student_branch_only_rtu_btech']
+    `("rollNo" IS NULL) OR (NOT COALESCE("isRTUStudent", false)) OR ("rollNo" ~~ '%UC%'::text)` [name: 'student_rtu_rollno_has_uc']
+    `(NOT COALESCE("isRTUStudent", false)) OR ("collegeCode" IS NOT NULL)` [name: 'student_rtu_has_college_code']
+    `(NOT "isOnboardingComplete") OR (("fullName" IS NOT NULL) AND ("isRTUStudent" IS NOT NULL) AND ("collegeName" IS NOT NULL) AND (course IS NOT NULL) AND ("graduationYear" IS NOT NULL) AND (phone IS NOT NULL) AND ((NOT (COALESCE("isRTUStudent", false) AND (NOT (course IS DISTINCT FROM 'BTECH_BE'::"Degree")))) OR (branch IS NOT NULL)))` [name: 'student_onboarding_requires_fields']
+  }
+
+  Indexes {
+    (collegeCode, crNo) [type: btree, unique, name: "Student_collegeCode_crNo_key"]
+    (collegeCode, rollNo) [type: btree, unique, name: "Student_collegeCode_rollNo_key"]
+    (collegeCode, graduationYear) [type: btree, name: "Student_collegeCode_graduationYear_idx"]
+  }
+}
+
+Table "Resume" {
+  "id" text [pk, not null]
+  "studentId" text [unique, not null]
+  "name" text [not null]
+  "fileKey" text [not null]
+  "isPrimary" bool [not null, default: false]
+  "deletedAt" timestamp
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (id, studentId) [type: btree, unique, name: "Resume_id_studentId_key"]
+    studentId [type: btree, name: "Resume_studentId_idx"]
+  }
+}
+
+Table "SocialLink" {
+  "id" text [pk, not null]
+  "platform" SocialPlatform [not null]
+  "url" text [not null, check: `url ~* '^https://'::text`]
+  "customName" text
+  "studentId" text
+  "orgId" text
+  "partnerId" text
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "updatedAt" timestamp [not null]
+
+  Checks {
+    `num_nonnulls("studentId", "orgId", "partnerId") = 1` [name: 'social_exactly_one_owner']
+    `(platform = 'OTHER'::"SocialPlatform") = ("customName" IS NOT NULL)` [name: 'social_custom_name_only_other']
+  }
+
+  Indexes {
+    (orgId, platform) [type: btree, unique, name: "social_org_platform_unique"]
+    (partnerId, platform) [type: btree, unique, name: "social_partner_platform_unique"]
+    (studentId, platform) [type: btree, unique, name: "social_student_platform_unique"]
+    orgId [type: btree, name: "SocialLink_orgId_idx"]
+    partnerId [type: btree, name: "SocialLink_partnerId_idx"]
+    studentId [type: btree, name: "SocialLink_studentId_idx"]
+  }
+}
+
+Table "VerificationHistory" {
+  "id" text [pk, not null]
+  "organizationId" text
+  "partnerId" text
+  "fromStatus" VerificationStatus
+  "toStatus" VerificationStatus [not null]
+  "reviewedById" text
+  "reason" text
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  Checks {
+    `num_nonnulls("organizationId", "partnerId") = 1` [name: 'verification_history_one_owner']
+  }
+
+  Indexes {
+    (organizationId, createdAt) [type: btree, name: "VerificationHistory_organizationId_createdAt_idx"]
+    (partnerId, createdAt) [type: btree, name: "VerificationHistory_partnerId_createdAt_idx"]
+  }
+}
+
+Table "ProfileChangeRequest" {
+  "id" text [pk, not null]
+  "organizationId" text [unique]
+  "partnerId" text [unique]
+  "changes" jsonb [not null, check: `jsonb_typeof(changes) = 'object'::text`]
+  "status" ChangeRequestStatus [not null, default: 'PENDING']
+  "reviewedById" text
+  "reviewedAt" timestamp
+  "reason" text
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  Checks {
+    `num_nonnulls("organizationId", "partnerId") = 1` [name: 'change_request_one_owner']
+  }
+
+  Indexes {
+    (organizationId, status) [type: btree, name: "ProfileChangeRequest_organizationId_status_idx"]
+    (partnerId, status) [type: btree, name: "ProfileChangeRequest_partnerId_status_idx"]
+    (status, createdAt) [type: btree, name: "ProfileChangeRequest_status_createdAt_idx"]
+  }
+}
+
+Table "Organization" {
+  "id" text [pk, not null]
+  "userId" text [unique, not null]
+  "verificationStatus" VerificationStatus [not null, default: 'DRAFT']
+  "submissionCount" int4 [not null, default: 0]
+  "submittedAt" timestamp
+  "approvedAt" timestamp
+  "name" text
+  "logo" text
+  "banner" text
+  "location" text
+  "website" text [check: `(website IS NULL) OR (website ~* '^https://'::text)`]
+  "phone" text [check: `(phone IS NULL) OR (phone ~ '^\+[1-9][0-9]{7,14}$'::text)`]
+  "alternatePhone" text [check: `("alternatePhone" IS NULL) OR ("alternatePhone" ~ '^\+[1-9][0-9]{7,14}$'::text)`]
+  "alternateEmail" text [check: `("alternateEmail" IS NULL) OR ("alternateEmail" = lower(btrim("alternateEmail")))`]
+  "contactPersonName" text
+  "contactPersonDesignation" text
+  "contactIdKey" text
+  "tagline" text
+  "about" text
+  "foundingYear" int4 [check: `("foundingYear" IS NULL) OR (("foundingYear" >= 1800) AND ("foundingYear" <= 2100))`]
+  "size" OrgSize
+  "industry" Industry
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "updatedAt" timestamp [not null]
+
+  Checks {
+    `("verificationStatus" <> 'APPROVED'::"VerificationStatus") OR ("approvedAt" IS NOT NULL)` [name: 'org_approved_has_date']
+    `(char_length(name) <= 120) AND (char_length(tagline) <= 150) AND (char_length(about) <= 3000) AND (char_length(location) <= 150) AND (char_length("contactPersonName") <= 120) AND (char_length("contactPersonDesignation") <= 100)` [name: 'org_text_lengths']
+    `("verificationStatus" = ANY (ARRAY['DRAFT'::"VerificationStatus", 'REJECTED'::"VerificationStatus"])) OR ((name IS NOT NULL) AND (location IS NOT NULL) AND (website IS NOT NULL) AND (phone IS NOT NULL) AND (about IS NOT NULL) AND ("foundingYear" IS NOT NULL) AND (size IS NOT NULL) AND (industry IS NOT NULL) AND ("contactPersonName" IS NOT NULL) AND ("contactPersonDesignation" IS NOT NULL))` [name: 'org_submitted_requires_fields']
+    `("verificationStatus" <> 'SUBMITTED'::"VerificationStatus") OR ("contactIdKey" IS NOT NULL)` [name: 'org_submitted_has_id']
+  }
+
+  Indexes {
+    verificationStatus [type: btree, name: "Organization_verificationStatus_idx"]
+  }
+}
+
+Table "Job" {
+  "id" text [pk, not null]
+  "organizationId" text [not null]
+  "title" text [not null]
+  "description" text [not null]
+  "location" text
+  "workMode" WorkMode [not null]
+  "jobType" JobType [not null]
+  "salary" int4 [check: `(salary IS NULL) OR (salary >= 0)`]
+  "isSalaryDisclosed" bool [not null, default: true]
+  "isRtuOnly" bool [not null, default: false]
+  "minGraduationYear" int4
+  "maxGraduationYear" int4
+  "openings" int4 [not null, check: `(openings >= 1) AND (openings <= 1000)`, default: 1]
+  "durationMonths" int4
+  "deadline" timestamp
+  "status" JobStatus [not null, default: 'DRAFT']
+  "publishedAt" timestamp
+  "closedAt" timestamp
+  "removedAt" timestamp
+  "removedById" text
+  "removalReason" text
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "updatedAt" timestamp [not null]
+
+  Checks {
+    `("workMode" = 'REMOTE'::"WorkMode") OR (location IS NOT NULL)` [name: 'job_location_unless_remote']
+    `(status <> ALL (ARRAY['PUBLISHED'::"JobStatus", 'PAUSED'::"JobStatus"])) OR ("publishedAt" IS NOT NULL)` [name: 'job_published_has_date']
+    `(status <> 'REMOVED'::"JobStatus") OR (("removedAt" IS NOT NULL) AND ("removalReason" IS NOT NULL))` [name: 'job_removed_has_audit']
+    `(("minGraduationYear" IS NULL) OR (("minGraduationYear" >= 2000) AND ("minGraduationYear" <= 2100))) AND (("maxGraduationYear" IS NULL) OR (("maxGraduationYear" >= 2000) AND ("maxGraduationYear" <= 2100))) AND (("minGraduationYear" IS NULL) OR ("maxGraduationYear" IS NULL) OR ("minGraduationYear" <= "maxGraduationYear"))` [name: 'job_graduation_year_rules']
+    `(("jobType" <> 'INTERNSHIP'::"JobType") OR ("durationMonths" IS NOT NULL)) AND (("durationMonths" IS NULL) OR (("durationMonths" >= 1) AND ("durationMonths" <= 36)))` [name: 'job_duration_rules']
+    `(char_length(title) <= 150) AND (char_length(description) <= 10000)` [name: 'job_text_lengths']
+  }
+
+  Indexes {
+    (id, organizationId) [type: btree, unique, name: "Job_id_organizationId_key"]
+    deadline [type: btree, name: "Job_deadline_idx"]
+    (organizationId, status) [type: btree, name: "Job_organizationId_status_idx"]
+    (status, publishedAt) [type: btree, name: "Job_status_publishedAt_idx"]
+  }
+}
+
+Table "Application" {
+  "id" text [pk, not null]
+  "studentId" text [not null]
+  "jobId" text [not null]
+  "organizationId" text [not null]
+  "resumeId" text [not null]
+  "status" ApplicationStatus [not null, default: 'SUBMITTED']
+  "internalNote" text [check: `char_length("internalNote") <= 2000`]
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "updatedAt" timestamp [not null]
+
+  Indexes {
+    (studentId, jobId) [type: btree, unique, name: "Application_studentId_jobId_key"]
+    (jobId, status) [type: btree, name: "Application_jobId_status_idx"]
+    (organizationId, status) [type: btree, name: "Application_organizationId_status_idx"]
+    resumeId [type: btree, name: "Application_resumeId_idx"]
+    (studentId, createdAt) [type: btree, name: "Application_studentId_createdAt_idx"]
+  }
+}
+
+Table "ApplicationStatusHistory" {
+  "id" text [pk, not null]
+  "applicationId" text [not null]
+  "fromStatus" ApplicationStatus
+  "toStatus" ApplicationStatus [not null]
+  "actor" ApplicationActor [not null]
+  "changedByUserId" text
+  "studentRemark" text [check: `char_length("studentRemark") <= 1000`]
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (applicationId, createdAt) [type: btree, name: "ApplicationStatusHistory_applicationId_createdAt_idx"]
+  }
+}
+
+Table "Partner" {
+  "id" text [pk, not null]
+  "userId" text [unique, not null]
+  "partnerType" PartnerType [not null]
+  "verificationStatus" VerificationStatus [not null, default: 'DRAFT']
+  "submissionCount" int4 [not null, default: 0]
+  "submittedAt" timestamp
+  "approvedAt" timestamp
+  "convertedAt" timestamp
+  "name" text
+  "image" text
+  "banner" text
+  "location" text
+  "website" text
+  "tagline" text
+  "about" text
+  "phone" text
+  "alternatePhone" text
+  "alternateEmail" text
+  "mentorContactEmail" text
+  "contactPersonName" text
+  "contactPersonDesignation" text
+  "contactIdKey" text
+  "foundingYear" int4
+  "collegeCode" text
+  "collegeName" text
+  "course" Degree
+  "graduationYear" int4
+  "currentRole" text
+  "yearsOfExperience" int4
+  "expertise" "text[]" [default: `ARRAY[]::text[]`]
+  "industry" Industry
+  "isListed" bool [not null, default: false]
+  "isAcceptingRequests" bool [not null, default: false]
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "updatedAt" timestamp [not null]
+
+  Checks {
+    `(("partnerType" = ANY (ARRAY['ECELL'::"PartnerType", 'COLLEGE'::"PartnerType"])) OR (("contactPersonName" IS NULL) AND ("contactPersonDesignation" IS NULL) AND ("contactIdKey" IS NULL) AND ("foundingYear" IS NULL))) AND (("partnerType" = ANY (ARRAY['ECELL'::"PartnerType", 'COLLEGE'::"PartnerType", 'ALUMNI'::"PartnerType"])) OR (("collegeCode" IS NULL) AND ("collegeName" IS NULL))) AND (("partnerType" = 'ALUMNI'::"PartnerType") OR ((course IS NULL) AND ("graduationYear" IS NULL))) AND (("partnerType" = ANY (ARRAY['MENTOR_SPEAKER'::"PartnerType", 'ALUMNI'::"PartnerType"])) OR (("mentorContactEmail" IS NULL) AND ("currentRole" IS NULL) AND ("yearsOfExperience" IS NULL) AND (industry IS NULL) AND ("mentorContactEmail" IS NULL) AND (COALESCE(cardinality(expertise), 0) = 0)))` [name: 'partner_type_specific_fields']
+    `("verificationStatus" = ANY (ARRAY['DRAFT'::"VerificationStatus", 'REJECTED'::"VerificationStatus"])) OR ("convertedAt" IS NOT NULL) OR ((name IS NOT NULL) AND (location IS NOT NULL) AND (about IS NOT NULL) AND (phone IS NOT NULL) AND (("partnerType" <> ALL (ARRAY['ECELL'::"PartnerType", 'COLLEGE'::"PartnerType"])) OR (("collegeCode" IS NOT NULL) AND ("collegeName" IS NOT NULL) AND ("contactPersonName" IS NOT NULL) AND ("contactPersonDesignation" IS NOT NULL))) AND (("partnerType" <> 'ALUMNI'::"PartnerType") OR (("collegeCode" IS NOT NULL) AND ("collegeName" IS NOT NULL) AND (course IS NOT NULL) AND ("graduationYear" IS NOT NULL) AND ("mentorContactEmail" IS NOT NULL))) AND (("partnerType" <> 'MENTOR_SPEAKER'::"PartnerType") OR (("currentRole" IS NOT NULL) AND ("mentorContactEmail" IS NOT NULL) AND (COALESCE(cardinality(expertise), 0) > 0))))` [name: 'partner_submitted_requires_fields']
+    `("convertedAt" IS NULL) OR (("partnerType" = 'ALUMNI'::"PartnerType") AND ("verificationStatus" = 'APPROVED'::"VerificationStatus") AND ("approvedAt" IS NOT NULL) AND (name IS NOT NULL) AND ("collegeName" IS NOT NULL) AND (course IS NOT NULL) AND ("graduationYear" IS NOT NULL) AND (phone IS NOT NULL))` [name: 'partner_converted_rules']
+    `("verificationStatus" <> 'APPROVED'::"VerificationStatus") OR ("partnerType" <> ALL (ARRAY['MENTOR_SPEAKER'::"PartnerType", 'ALUMNI'::"PartnerType"])) OR (NOT ("isListed" OR "isAcceptingRequests")) OR (("currentRole" IS NOT NULL) AND (COALESCE(cardinality(expertise), 0) > 0) AND ("mentorContactEmail" IS NOT NULL))` [name: 'partner_public_mentor_needs_fields']
+    `("verificationStatus" <> 'APPROVED'::"VerificationStatus") OR ("approvedAt" IS NOT NULL)` [name: 'partner_approved_has_date']
+    `("verificationStatus" <> 'SUBMITTED'::"VerificationStatus") OR ("partnerType" <> ALL (ARRAY['ECELL'::"PartnerType", 'COLLEGE'::"PartnerType"])) OR ("contactIdKey" IS NOT NULL)` [name: 'partner_submitted_entity_has_id']
+    `((website IS NULL) OR (website ~* '^https://'::text)) AND ((phone IS NULL) OR (phone ~ '^\+[1-9][0-9]{7,14}$'::text)) AND (("alternatePhone" IS NULL) OR ("alternatePhone" ~ '^\+[1-9][0-9]{7,14}$'::text)) AND (("alternateEmail" IS NULL) OR ("alternateEmail" = lower(btrim("alternateEmail")))) AND (("mentorContactEmail" IS NULL) OR ("mentorContactEmail" = lower(btrim("mentorContactEmail")))) AND (("foundingYear" IS NULL) OR (("foundingYear" >= 1800) AND ("foundingYear" <= 2100))) AND (("graduationYear" IS NULL) OR (("graduationYear" >= 2000) AND ("graduationYear" <= 2100))) AND (("yearsOfExperience" IS NULL) OR (("yearsOfExperience" >= 0) AND ("yearsOfExperience" <= 60)))` [name: 'partner_formats']
+    `(char_length(name) <= 120) AND (char_length(tagline) <= 150) AND (char_length(about) <= 3000) AND (char_length(location) <= 150) AND (char_length("currentRole") <= 150) AND (char_length("contactPersonName") <= 120) AND (char_length("contactPersonDesignation") <= 100) AND (COALESCE(cardinality(expertise), 0) <= 10) AND (max_text_len(expertise) <= 40)` [name: 'partner_text_lengths']
+  }
+
+  Indexes {
+    (id, partnerType) [type: btree, unique, name: "Partner_id_partnerType_key"]
+    (partnerType, collegeCode) [type: btree, unique, name: "partner_one_approved_entity_per_college"]
+    collegeCode [type: btree, name: "Partner_collegeCode_idx"]
+    (partnerType, verificationStatus) [type: btree, name: "Partner_partnerType_verificationStatus_idx"]
+    verificationStatus [type: btree, name: "Partner_verificationStatus_idx"]
+  }
+}
+
+Table "Startup" {
+  "id" text [pk, not null]
+  "partnerId" text [not null]
+  "partnerType" PartnerType [not null, check: `"partnerType" = 'ENTREPRENEUR'::"PartnerType"`, default: 'ENTREPRENEUR']
+  "name" text [not null]
+  "description" text
+  "logo" text
+  "website" text
+  "stage" StartupStage [not null]
+  "industry" Industry [not null]
+  "foundingYear" int4
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "updatedAt" timestamp [not null]
+
+  Checks {
+    `((website IS NULL) OR (website ~* '^https://'::text)) AND (("foundingYear" IS NULL) OR (("foundingYear" >= 1800) AND ("foundingYear" <= 2100))) AND (char_length(name) <= 120) AND (char_length(description) <= 2000)` [name: 'startup_rules']
+  }
+
+  Indexes {
+    (partnerId, name) [type: btree, unique, name: "Startup_partnerId_name_key"]
+    partnerId [type: btree, name: "Startup_partnerId_idx"]
+  }
+}
+
+Table "MentorshipRequest" {
+  "id" text [pk, not null]
+  "studentId" text
+  "requesterAlumniId" text
+  "requesterAlumniType" PartnerType
+  "mentorId" text [not null]
+  "mentorType" PartnerType [not null, check: `"mentorType" = ANY (ARRAY['MENTOR_SPEAKER'::"PartnerType", 'ALUMNI'::"PartnerType"])`]
+  "message" text [not null]
+  "status" MentorshipStatus [not null, default: 'PENDING']
+  "responseNote" text
+  "sharePhone" bool [not null, default: false]
+  "respondedAt" timestamp
+  "expiresAt" timestamp [not null]
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "updatedAt" timestamp [not null]
+
+  Checks {
+    `(num_nonnulls("studentId", "requesterAlumniId") = 1) AND (("requesterAlumniId" IS NULL) = ("requesterAlumniType" IS NULL)) AND (("requesterAlumniType" IS NULL) OR ("requesterAlumniType" = 'ALUMNI'::"PartnerType")) AND (("requesterAlumniId" IS NULL) OR ("requesterAlumniId" <> "mentorId"))` [name: 'mentorship_one_requester']
+    `(NOT "sharePhone") OR (status = 'ACCEPTED'::"MentorshipStatus")` [name: 'mentorship_phone_only_when_accepted']
+    `(char_length(message) <= 1000) AND (char_length("responseNote") <= 500)` [name: 'mentorship_text_lengths']
+    `(status <> ALL (ARRAY['ACCEPTED'::"MentorshipStatus", 'DECLINED'::"MentorshipStatus"])) OR ("respondedAt" IS NOT NULL)` [name: 'mentorship_response_has_date']
+  }
+
+  Indexes {
+    (studentId, mentorId) [type: btree, unique, name: "mentorship_one_pending"]
+    (requesterAlumniId, mentorId) [type: btree, unique, name: "mentorship_one_pending_alumni"]
+    (mentorId, status, createdAt) [type: btree, name: "MentorshipRequest_mentorId_status_createdAt_idx"]
+    (requesterAlumniId, createdAt) [type: btree, name: "MentorshipRequest_requesterAlumniId_createdAt_idx"]
+    (requesterAlumniId, mentorId, createdAt) [type: btree, name: "MentorshipRequest_requesterAlumniId_mentorId_createdAt_idx"]
+    (studentId, createdAt) [type: btree, name: "MentorshipRequest_studentId_createdAt_idx"]
+    (studentId, mentorId, createdAt) [type: btree, name: "MentorshipRequest_studentId_mentorId_createdAt_idx"]
+  }
+}
+
+Table "CollaborationRequest" {
+  "id" text [pk, not null]
+  "partnerId" text [not null]
+  "direction" CollaborationDirection [not null]
+  "type" CollaborationType [not null]
+  "title" text [not null]
+  "description" text [not null]
+  "proposedDate" timestamp
+  "status" CollaborationStatus [not null, default: 'PENDING']
+  "responseNote" text
+  "respondedById" text
+  "respondedAt" timestamp
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "updatedAt" timestamp [not null]
+
+  Checks {
+    `(char_length(title) <= 150) AND (char_length(description) <= 3000) AND (char_length("responseNote") <= 1000)` [name: 'collaboration_text_lengths']
+    `(status <> ALL (ARRAY['ACCEPTED'::"CollaborationStatus", 'DECLINED'::"CollaborationStatus"])) OR ("respondedAt" IS NOT NULL)` [name: 'collaboration_response_has_date']
+  }
+
+  Indexes {
+    (partnerId, createdAt) [type: btree, name: "CollaborationRequest_partnerId_createdAt_idx"]
+    (status, createdAt) [type: btree, name: "CollaborationRequest_status_createdAt_idx"]
+  }
+}
+
+Table "AlumniConversionBatch" {
+  "id" text [pk, not null]
+  "triggeredById" text
+  "graduationYear" int4 [not null]
+  "status" ConversionBatchStatus [not null, default: 'RUNNING']
+  "totalCount" int4 [not null, default: 0]
+  "convertedCount" int4 [not null, default: 0]
+  "failedCount" int4 [not null, default: 0]
+  "skippedCount" int4 [not null, default: 0]
+  "startedAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "completedAt" timestamp
+
+  Indexes {
+    status [type: btree, name: "AlumniConversionBatch_status_idx"]
+  }
+}
+
+Table "AlumniConversion" {
+  "id" text [pk, not null]
+  "batchId" text [not null]
+  "userId" text [unique, not null]
+  "status" AlumniConversionStatus [not null, default: 'PENDING']
+  "error" text
+  "convertedAt" timestamp
+  "emailQueuedAt" timestamp
+  "emailSentAt" timestamp
+  "emailAttempts" int4 [not null, default: 0]
+
+  Checks {
+    `(status <> 'CONVERTED'::"AlumniConversionStatus") OR ("convertedAt" IS NOT NULL)` [name: 'alumni_conversion_converted_has_date']
+  }
+
+  Indexes {
+    (batchId, userId) [type: btree, unique, name: "AlumniConversion_batchId_userId_key"]
+    (batchId, status) [type: btree, name: "AlumniConversion_batchId_status_idx"]
+    (emailQueuedAt, emailSentAt) [type: btree, name: "AlumniConversion_emailQueuedAt_emailSentAt_idx"]
+  }
+}
+
+Table "Event" {
+  "id" text [pk, not null]
+  "slug" text [unique, not null, check: `(slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'::text) AND (char_length(slug) <= 120)`]
+  "title" text [not null, check: `(char_length(btrim(title)) >= 1) AND (char_length(btrim(title)) <= 150)`]
+  "summary" text [check: `(summary IS NULL) OR (char_length(summary) <= 200)`]
+  "description" text [not null, check: `char_length(description) <= 20000`]
+  "poster" text
+  "galleryImages" "text[]" [default: `ARRAY[]::text[]`]
+  "videoLinks" "text[]" [default: `ARRAY[]::text[]`]
+  "mode" EventMode [not null]
+  "venue" text
+  "onlineLink" text [check: `("onlineLink" IS NULL) OR (("onlineLink" ~* '^https://[^[:space:]]+$'::text) AND (char_length("onlineLink") <= 500))`]
+  "date" timestamp [not null]
+  "eligibleYears" "int4[]" [check: `"eligibleYears" <@ ARRAY[1, 2, 3, 4, 5, 6]`, default: `ARRAY[]::integer[]`]
+  "isRtuOnly" bool [not null, default: false]
+  "participationType" ParticipationType [not null, default: 'INDIVIDUAL']
+  "minTeamSize" int4
+  "maxTeamSize" int4
+  "registrationEnabled" bool [not null, default: false]
+  "registrationOpensAt" timestamp
+  "registrationClosesAt" timestamp
+  "feeAmount" int4 [not null, default: 0]
+  "status" EventStatus [not null, default: 'DRAFT']
+  "publishedAt" timestamp
+  "cancelledAt" timestamp
+  "cancellationReason" text
+  "createdById" text
+  "hostPartnerId" text
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "updatedAt" timestamp [not null]
+
+  Checks {
+    `("registrationOpensAt" IS NULL) OR ("registrationClosesAt" IS NULL) OR ("registrationOpensAt" < "registrationClosesAt")` [name: 'event_reg_window_chk']
+    `(status <> 'PUBLISHED'::"EventStatus") OR ((poster IS NOT NULL) AND ("publishedAt" IS NOT NULL))` [name: 'event_published_chk']
+    `(("participationType" = 'INDIVIDUAL'::"ParticipationType") AND ("minTeamSize" IS NULL) AND ("maxTeamSize" IS NULL)) OR (("participationType" = 'TEAM'::"ParticipationType") AND ("minTeamSize" >= 2) AND ("maxTeamSize" >= "minTeamSize") AND ("maxTeamSize" <= 10))` [name: 'event_team_chk']
+    `("feeAmount" >= 0) AND (("feeAmount" = 0) OR "registrationEnabled")` [name: 'event_fee_chk']
+    `(mode = 'ONLINE'::"EventMode") OR (venue IS NOT NULL)` [name: 'event_venue_chk']
+    `(status <> 'CANCELLED'::"EventStatus") OR ("cancelledAt" IS NOT NULL)` [name: 'event_cancelled_chk']
+    `(cardinality("galleryImages") <= 20) AND (cardinality("videoLinks") <= 10)` [name: 'event_media_caps_chk']
+    `("registrationClosesAt" IS NULL) OR ("registrationClosesAt" <= date)` [name: 'event_reg_close_chk']
+  }
+
+  Indexes {
+    hostPartnerId [type: btree, name: "Event_hostPartnerId_idx"]
+    (status, date) [type: btree, name: "Event_status_date_idx"]
+  }
+}
+
+Table "EventRegistration" {
+  "id" text [pk, not null]
+  "eventId" text [unique, not null]
+  "teamName" text [check: `("teamName" IS NULL) OR (btrim("teamName") <> ''::text)`]
+  "status" RegistrationStatus [not null, default: 'DRAFT']
+  "feeAmount" int4 [not null, check: `"feeAmount" >= 0`, default: 0]
+  "confirmedAt" timestamp
+  "cancelledAt" timestamp
+  "cancelReason" text
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "updatedAt" timestamp [not null]
+
+  Checks {
+    `(status <> 'CONFIRMED'::"RegistrationStatus") OR ("confirmedAt" IS NOT NULL)` [name: 'reg_confirmed_chk']
+    `(status <> 'CANCELLED'::"RegistrationStatus") OR ("cancelledAt" IS NOT NULL)` [name: 'reg_cancelled_chk']
+  }
+
+  Indexes {
+    (id, eventId) [type: btree, unique, name: "EventRegistration_id_eventId_key"]
+    (eventId, status) [type: btree, name: "EventRegistration_eventId_status_idx"]
+  }
+}
+
+Table "EventRegistrationMember" {
+  "id" text [pk, not null]
+  "registrationId" text [unique, not null]
+  "eventId" text [not null]
+  "studentId" text [not null]
+  "isLeader" bool [not null, default: false]
+  "joinedAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "leftAt" timestamp
+  "checkedInAt" timestamp
+
+  Indexes {
+    (eventId, studentId) [type: btree, unique, name: "member_one_live_per_event"]
+    eventId [type: btree, name: "EventRegistrationMember_eventId_idx"]
+    (registrationId, leftAt) [type: btree, name: "EventRegistrationMember_registrationId_leftAt_idx"]
+    (studentId, joinedAt) [type: btree, name: "EventRegistrationMember_studentId_joinedAt_idx"]
+  }
+}
+
+Table "EventTeamInvite" {
+  "id" text [pk, not null]
+  "registrationId" text [not null]
+  "eventId" text [not null]
+  "invitedStudentId" text [not null]
+  "status" InviteStatus [not null, default: 'PENDING']
+  "respondedAt" timestamp
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "updatedAt" timestamp [not null]
+
+  Checks {
+    `((status = 'PENDING'::"InviteStatus") AND ("respondedAt" IS NULL)) OR ((status <> 'PENDING'::"InviteStatus") AND ("respondedAt" IS NOT NULL))` [name: 'invite_responded_chk']
+  }
+
+  Indexes {
+    (registrationId, invitedStudentId) [type: btree, unique, name: "EventTeamInvite_registrationId_invitedStudentId_key"]
+    (invitedStudentId, eventId, status) [type: btree, name: "EventTeamInvite_invitedStudentId_eventId_status_idx"]
+    (registrationId, status) [type: btree, name: "EventTeamInvite_registrationId_status_idx"]
+  }
+}
+
+Table "Payment" {
+  "id" text [pk, not null]
+  "registrationId" text [unique, not null]
+  "amount" int4 [not null, check: `amount > 0`]
+  "currency" text [not null, default: 'INR']
+  "status" PaymentStatus [not null, default: 'CREATED']
+  "gateway" text [not null, default: 'RAZORPAY']
+  "gatewayOrderId" text [unique, not null]
+  "gatewayPaymentId" text [unique]
+  "method" text
+  "failureReason" text
+  "paidAt" timestamp
+  "refundId" text [unique]
+  "refundedAmount" int4 [not null, default: 0]
+  "refundedAt" timestamp
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "updatedAt" timestamp [not null]
+
+  Checks {
+    `(status <> ALL (ARRAY['PAID'::"PaymentStatus", 'REFUND_PENDING'::"PaymentStatus", 'REFUNDED'::"PaymentStatus"])) OR (("paidAt" IS NOT NULL) AND ("gatewayPaymentId" IS NOT NULL))` [name: 'payment_paid_chk']
+    `("refundedAmount" >= 0) AND ("refundedAmount" <= amount)` [name: 'payment_refund_chk']
+  }
+
+  Indexes {
+    (registrationId, status) [type: btree, name: "Payment_registrationId_status_idx"]
+    (status, createdAt) [type: btree, name: "Payment_status_createdAt_idx"]
+  }
+}
+
+Table "PaymentWebhookEvent" {
+  "id" text [pk, not null]
+  "gateway" text [not null]
+  "gatewayEventId" text [not null]
+  "eventType" text [not null]
+  "payload" jsonb [not null]
+  "receivedAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "processedAt" timestamp
+  "error" text
+
+  Indexes {
+    (gateway, gatewayEventId) [type: btree, unique, name: "PaymentWebhookEvent_gateway_gatewayEventId_key"]
+    processedAt [type: btree, name: "PaymentWebhookEvent_processedAt_idx"]
+  }
+}
+
+Table "EventRegistrationStatusHistory" {
+  "id" text [pk, not null]
+  "registrationId" text [not null]
+  "fromStatus" RegistrationStatus
+  "toStatus" RegistrationStatus [not null]
+  "actor" RegistrationActor [not null]
+  "changedByUserId" text
+  "reason" text
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (registrationId, createdAt) [type: btree, name: "EventRegistrationStatusHistory_registrationId_createdAt_idx"]
+  }
+}
+
+Table "ExternalOpportunity" {
+  "id" text [pk, not null]
+  "title" text [not null, check: `(btrim(title) <> ''::text) AND (char_length(title) <= 150)`]
+  "organizerName" text [not null, check: `(btrim("organizerName") <> ''::text) AND (char_length("organizerName") <= 100)`]
+  "shortDescription" text [not null, check: `(btrim("shortDescription") <> ''::text) AND (char_length("shortDescription") <= 300)`]
+  "applyLink" text [unique, not null, check: `("applyLink" ~* '^https://[^[:space:]]+$'::text) AND (char_length("applyLink") <= 500)`]
+  "type" ExternalOpportunityType [not null]
+  "mode" WorkMode [not null]
+  "location" text
+  "eligibleYears" "int4[]" [check: `"eligibleYears" <@ ARRAY[1, 2, 3, 4, 5, 6]`, default: `ARRAY[]::integer[]`]
+  "deadline" timestamp
+  "startsAt" timestamp
+  "status" ExternalOpportunityStatus [not null, default: 'DRAFT']
+  "isFeatured" bool [not null, default: false]
+  "clickCount" int4 [not null, check: `"clickCount" >= 0`, default: 0]
+  "publishedAt" timestamp
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "updatedAt" timestamp [not null]
+
+  Checks {
+    `((mode = 'REMOTE'::"WorkMode") OR ((location IS NOT NULL) AND (btrim(location) <> ''::text))) AND ((location IS NULL) OR (char_length(location) <= 100))` [name: 'extopp_location_chk']
+    `(status <> 'PUBLISHED'::"ExternalOpportunityStatus") OR ("publishedAt" IS NOT NULL)` [name: 'extopp_published_chk']
+  }
+
+  Indexes {
+    (status, deadline) [type: btree, name: "ExternalOpportunity_status_deadline_idx"]
+    (status, type) [type: btree, name: "ExternalOpportunity_status_type_idx"]
+  }
+}
+
+Table "Innovation" {
+  "id" text [pk, not null]
+  "slug" text [unique, not null, check: `(slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'::text) AND (char_length(slug) <= 120)`]
+  "title" text [not null, check: `(char_length(btrim(title)) >= 1) AND (char_length(btrim(title)) <= 150)`]
+  "shortDescription" text [not null, check: `(char_length(btrim("shortDescription")) >= 1) AND (char_length(btrim("shortDescription")) <= 200)`]
+  "thumbnail" text [check: `(thumbnail IS NULL) OR ((char_length(btrim(thumbnail)) >= 1) AND (char_length(btrim(thumbnail)) <= 300))`]
+  "hasDetailPage" bool [not null, default: false]
+  "description" text [check: `(description IS NULL) OR (char_length(description) <= 20000)`]
+  "galleryImages" "text[]" [default: `ARRAY[]::text[]`]
+  "videoLinks" "text[]" [default: `ARRAY[]::text[]`]
+  "members" "text[]" [default: `ARRAY[]::text[]`]
+  "year" int4 [not null, check: `(year >= 2000) AND (year <= 2100)`]
+  "demoUrl" text [check: `("demoUrl" IS NULL) OR (("demoUrl" ~* '^https://[^[:space:]]+$'::text) AND (char_length("demoUrl") <= 500))`]
+  "patentStatus" PatentStatus [not null, default: 'NONE']
+  "displayOrder" int4 [not null, check: `"displayOrder" >= 0`, default: 0]
+  "isFeatured" bool [not null, default: false]
+  "status" InitiativeStatus [not null, default: 'DRAFT']
+  "publishedAt" timestamp
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "updatedAt" timestamp [not null]
+
+  Checks {
+    `(NOT "hasDetailPage") OR ((description IS NOT NULL) AND (char_length(btrim(description)) > 0))` [name: 'Innovation_detailpage_needs_description_chk']
+    `(status <> 'PUBLISHED'::"InitiativeStatus") OR (("publishedAt" IS NOT NULL) AND (thumbnail IS NOT NULL) AND (cardinality(members) >= 1))` [name: 'Innovation_published_complete_chk']
+  }
+
+  Indexes {
+    (status, displayOrder) [type: btree, name: "Innovation_status_displayOrder_idx"]
+    (status, isFeatured) [type: btree, name: "Innovation_status_isFeatured_idx"]
+  }
+}
+
+Table "Incubation" {
+  "id" text [pk, not null]
+  "title" text [unique, not null, check: `(char_length(btrim(title)) >= 1) AND (char_length(btrim(title)) <= 150)`]
+  "shortDescription" text [not null, check: `(char_length(btrim("shortDescription")) >= 1) AND (char_length(btrim("shortDescription")) <= 200)`]
+  "logo" text [check: `(logo IS NULL) OR ((char_length(btrim(logo)) >= 1) AND (char_length(btrim(logo)) <= 300))`]
+  "website" text [check: `(website IS NULL) OR ((website ~* '^https://[^[:space:]]+$'::text) AND (char_length(website) <= 500))`]
+  "founders" "text[]" [default: `ARRAY[]::text[]`]
+  "incubatedYear" int4 [not null, check: `("incubatedYear" >= 2000) AND ("incubatedYear" <= 2100)`]
+  "sector" Industry [not null]
+  "displayOrder" int4 [not null, check: `"displayOrder" >= 0`, default: 0]
+  "isFeatured" bool [not null, default: false]
+  "status" InitiativeStatus [not null, default: 'DRAFT']
+  "publishedAt" timestamp
+  "createdAt" timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  "updatedAt" timestamp [not null]
+
+  Checks {
+    `(status <> 'PUBLISHED'::"InitiativeStatus") OR (("publishedAt" IS NOT NULL) AND (logo IS NOT NULL) AND (cardinality(founders) >= 1))` [name: 'Incubation_published_complete_chk']
+  }
+
+  Indexes {
+    (status, displayOrder) [type: btree, name: "Incubation_status_displayOrder_idx"]
+    (status, isFeatured) [type: btree, name: "Incubation_status_isFeatured_idx"]
+  }
+}
+
+Ref "AlumniConversion_batchId_fkey":"AlumniConversionBatch"."id" <? "AlumniConversion"."batchId" [update: cascade, delete: restrict]
+
+Ref "AlumniConversion_userId_fkey":"User"."id" <? "AlumniConversion"."userId" [update: cascade, delete: cascade]
+
+Ref "AlumniConversionBatch_triggeredById_fkey":"User"."id" ?<? "AlumniConversionBatch"."triggeredById" [update: cascade, delete: set null]
+
+Ref "Application_jobId_organizationId_fkey":"Job".("id", "organizationId") <? "Application".("jobId", "organizationId") [update: cascade, delete: restrict]
+
+Ref "Application_resumeId_studentId_fkey":"Resume".("id", "studentId") <? "Application".("resumeId", "studentId") [update: cascade]
+
+Ref "Application_studentId_fkey":"Student"."id" <? "Application"."studentId" [update: cascade, delete: cascade]
+
+Ref "ApplicationStatusHistory_applicationId_fkey":"Application"."id" <? "ApplicationStatusHistory"."applicationId" [update: cascade, delete: cascade]
+
+Ref "ApplicationStatusHistory_changedByUserId_fkey":"User"."id" ?<? "ApplicationStatusHistory"."changedByUserId" [update: cascade, delete: set null]
+
+Ref "AuthToken_userId_fkey":"User"."id" <? "AuthToken"."userId" [update: cascade, delete: cascade]
+
+Ref "CollaborationRequest_partnerId_fkey":"Partner"."id" <? "CollaborationRequest"."partnerId" [update: cascade, delete: cascade]
+
+Ref "CollaborationRequest_respondedById_fkey":"User"."id" ?<? "CollaborationRequest"."respondedById" [update: cascade, delete: set null]
+
+Ref "Event_createdById_fkey":"User"."id" ?<? "Event"."createdById" [update: cascade, delete: set null]
+
+Ref "Event_hostPartnerId_fkey":"Partner"."id" ?<? "Event"."hostPartnerId" [update: cascade, delete: set null]
+
+Ref "EventRegistration_eventId_fkey":"Event"."id" <? "EventRegistration"."eventId" [update: cascade, delete: restrict]
+
+Ref "EventRegistrationMember_registrationId_eventId_fkey":"EventRegistration".("id", "eventId") <? "EventRegistrationMember".("registrationId", "eventId") [update: cascade, delete: cascade]
+
+Ref "EventRegistrationMember_studentId_fkey":"Student"."id" <? "EventRegistrationMember"."studentId" [update: cascade, delete: restrict]
+
+Ref "EventRegistrationStatusHistory_changedByUserId_fkey":"User"."id" ?<? "EventRegistrationStatusHistory"."changedByUserId" [update: cascade, delete: set null]
+
+Ref "EventRegistrationStatusHistory_registrationId_fkey":"EventRegistration"."id" <? "EventRegistrationStatusHistory"."registrationId" [update: cascade, delete: cascade]
+
+Ref "EventTeamInvite_invitedStudentId_fkey":"Student"."id" <? "EventTeamInvite"."invitedStudentId" [update: cascade, delete: cascade]
+
+Ref "EventTeamInvite_registrationId_eventId_fkey":"EventRegistration".("id", "eventId") <? "EventTeamInvite".("registrationId", "eventId") [update: cascade, delete: cascade]
+
+Ref "Job_organizationId_fkey":"Organization"."id" <? "Job"."organizationId" [update: cascade, delete: restrict]
+
+Ref "Job_removedById_fkey":"User"."id" ?<? "Job"."removedById" [update: cascade, delete: set null]
+
+Ref "MentorshipRequest_mentorId_mentorType_fkey":"Partner".("id", "partnerType") <? "MentorshipRequest".("mentorId", "mentorType") [update: cascade, delete: cascade]
+
+Ref "MentorshipRequest_requesterAlumniId_requesterAlumniType_fkey":"Partner".("id", "partnerType") ?<? "MentorshipRequest".("requesterAlumniId", "requesterAlumniType") [update: cascade, delete: cascade]
+
+Ref "MentorshipRequest_studentId_fkey":"Student"."id" ?<? "MentorshipRequest"."studentId" [update: cascade, delete: cascade]
+
+Ref "Organization_userId_fkey":"User"."id" <? "Organization"."userId" [update: cascade, delete: cascade]
+
+Ref "Partner_userId_fkey":"User"."id" <? "Partner"."userId" [update: cascade, delete: cascade]
+
+Ref "Payment_registrationId_fkey":"EventRegistration"."id" <? "Payment"."registrationId" [update: cascade, delete: restrict]
+
+Ref "ProfileChangeRequest_organizationId_fkey":"Organization"."id" ?<? "ProfileChangeRequest"."organizationId" [update: cascade, delete: cascade]
+
+Ref "ProfileChangeRequest_partnerId_fkey":"Partner"."id" ?<? "ProfileChangeRequest"."partnerId" [update: cascade, delete: cascade]
+
+Ref "ProfileChangeRequest_reviewedById_fkey":"User"."id" ?<? "ProfileChangeRequest"."reviewedById" [update: cascade, delete: set null]
+
+Ref "Resume_studentId_fkey":"Student"."id" <? "Resume"."studentId" [update: cascade, delete: cascade]
+
+Ref "Session_userId_fkey":"User"."id" <? "Session"."userId" [update: cascade, delete: cascade]
+
+Ref "SocialLink_orgId_fkey":"Organization"."id" ?<? "SocialLink"."orgId" [update: cascade, delete: cascade]
+
+Ref "SocialLink_partnerId_fkey":"Partner"."id" ?<? "SocialLink"."partnerId" [update: cascade, delete: cascade]
+
+Ref "SocialLink_studentId_fkey":"Student"."id" ?<? "SocialLink"."studentId" [update: cascade, delete: cascade]
+
+Ref "Startup_partnerId_partnerType_fkey":"Partner".("id", "partnerType") <? "Startup".("partnerId", "partnerType") [update: cascade, delete: cascade]
+
+Ref "StatusHistory_changedById_fkey":"User"."id" ?<? "StatusHistory"."changedById" [update: cascade, delete: set null]
+
+Ref "StatusHistory_userId_fkey":"User"."id" <? "StatusHistory"."userId" [update: cascade, delete: cascade]
+
+Ref "Student_userId_fkey":"User"."id" <? "Student"."userId" [update: cascade, delete: cascade]
+
+Ref "VerificationHistory_organizationId_fkey":"Organization"."id" ?<? "VerificationHistory"."organizationId" [update: cascade, delete: cascade]
+
+Ref "VerificationHistory_partnerId_fkey":"Partner"."id" ?<? "VerificationHistory"."partnerId" [update: cascade, delete: cascade]
+
+Ref "VerificationHistory_reviewedById_fkey":"User"."id" ?<? "VerificationHistory"."reviewedById" [update: cascade, delete: set null]

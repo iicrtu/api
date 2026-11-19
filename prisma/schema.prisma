@@ -1,0 +1,1423 @@
+// IIC RTU BACKEND SCHEMA v4 (COMPLETE)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// =====================================================================
+// USER SCHEMA
+// =====================================================================
+
+enum UserRole {
+  STUDENT
+  ORGANIZATION // posts jobs / internships
+  PARTNER // e-cells, colleges, entrepreneurs, mentors/speakers, alumni
+  ADMIN // exactly one row (unique index in SQL). Created ONLY by a seed script, signup must never accept it
+  // NOTE: role is chosen at signup and NEVER changes. ONE exception: the admin's bulk alumni conversion
+  // (STUDENT -> PARTNER), allowed by a DB trigger only inside that transaction (see AlumniConversion).
+}
+
+// Lifecycle. EVERY status change must write a StatusHistory row in the SAME transaction.
+//   any role, password signup : PENDING_EMAIL_VERIFICATION -> ACTIVE (after the email link)
+//   any role, Google signup   : ACTIVE immediately (emailVerifiedAt set at creation, set status explicitly: the column default is PENDING)
+//   any role                  : disposable email at signup -> REJECTED (permanent, login always refused)
+//   any role                  : ACTIVE <-> SUSPENDED (admin ban. Revoke ALL sessions in the same transaction)
+// NOTE: org / partner approval is NOT here, it lives on verificationStatus of Organization / Partner.
+
+enum AccountStatus {
+  ACTIVE
+  PENDING_EMAIL_VERIFICATION
+  REJECTED
+  SUSPENDED
+}
+
+enum AuthTokenType {
+  RESET_PASSWORD
+  EMAIL_VERIFY
+}
+
+enum StatusChangedBy {
+  SYSTEM
+  ADMIN
+  USER
+}
+
+enum SessionRevokeReason {
+  LOGOUT
+  LOGOUT_ALL
+  REUSE_DETECTED // an already-rotated refresh token was presented => assume theft
+  PASSWORD_CHANGE
+  SUSPENDED
+  ROLE_CHANGE // student -> alumni conversion: user must log in again
+  ADMIN
+}
+
+model User {
+  id    String @id @default(uuid())
+  name  String // raw name from signup/Google, can be junk ("cobragamer24"). UI shows Student.fullName instead.
+  email String @unique // ALWAYS trim + lowercase before any read/write (see SQL CHECK)
+
+  emailVerifiedAt   DateTime? // set => email ownership proven. Google signups get this at creation.
+  password          String? // argon2id hash. null for Google-only accounts
+  passwordChangedAt DateTime? // reject access tokens issued before this
+  googleId          String?   @unique // Google "sub" claim. Match on this, NEVER on email alone
+
+  role   UserRole
+  status AccountStatus @default(PENDING_EMAIL_VERIFICATION)
+
+  lastLoginAt DateTime?
+  deletedAt   DateTime? // soft delete. On deletion also anonymize email so it does not stay locked
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  student       Student?
+  organization  Organization?
+  partner       Partner?
+  sessions      Session[] // one row per device/login
+  tokens        AuthToken[]
+  statusHistory StatusHistory[] @relation("StatusHistoryOwner")
+
+  // back-relations for "who did it" columns (all SetNull on user delete)
+  statusChangesMade         StatusHistory[]                  @relation("StatusChangedByUser")
+  verificationsReviewed     VerificationHistory[]            @relation("VerificationReviewer")
+  changeRequestsReviewed    ProfileChangeRequest[]           @relation("ChangeReviewer")
+  collaborationsResponded   CollaborationRequest[]           @relation("CollaborationResponder")
+  jobsRemoved               Job[]                            @relation("JobRemovedBy")
+  applicationStatusChanges  ApplicationStatusHistory[]       @relation("ApplicationStatusChanger")
+  eventsCreated             Event[]                          @relation("EventCreator")
+  registrationStatusChanges EventRegistrationStatusHistory[] @relation("RegistrationStatusChanger")
+
+  conversionBatches AlumniConversionBatch[] @relation("ConversionBatchTrigger")
+  alumniConversions AlumniConversion[]      @relation("AlumniConversionUser")
+
+  @@index([role])
+  @@index([status])
+}
+
+// One row = one logged-in device. Refresh tokens ROTATE on every use.
+model Session {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  refreshTokenHash     String  @unique // SHA-256 of the random token. Never store the raw token
+  prevRefreshTokenHash String? @unique // hash from before the last rotation, used for reuse detection
+
+  // Reuse detection: if a request presents prevRefreshTokenHash => token theft => revoke this session.
+  // NOTE: allow a ~10s grace window so two browser tabs refreshing together don't log the user out.
+  rotatedAt DateTime?
+
+  revokedAt     DateTime? // null = active
+  revokedReason SessionRevokeReason?
+
+  lastUsedAt DateTime?
+  expiresAt  DateTime // absolute lifetime (e.g. 30 days) even if kept rotating
+  createdAt  DateTime  @default(now())
+
+  ipAddress String?
+  userAgent String?
+
+  @@index([userId])
+  @@index([expiresAt]) // for the cleanup job
+}
+
+// NOTE: tokenHash = SHA-256 of a 32-byte random token (not argon2, the token is already high-entropy).
+// Single use: set usedAt. When issuing a new token, invalidate older unused ones of the same type.
+// Suggested TTL: RESET_PASSWORD 15-30 min, EMAIL_VERIFY 24h.
+
+model AuthToken {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash String        @unique
+  type      AuthTokenType
+
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, type])
+  @@index([expiresAt])
+}
+
+// Append-only. Never update these rows.
+model StatusHistory {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation("StatusHistoryOwner", fields: [userId], references: [id], onDelete: Cascade)
+
+  fromStatus    AccountStatus? // null for the very first row (account creation)
+  toStatus      AccountStatus
+  changedBy     StatusChangedBy
+  changedById   String? // the admin's user id if changedBy = ADMIN, null for SYSTEM
+  changedByUser User?           @relation("StatusChangedByUser", fields: [changedById], references: [id], onDelete: SetNull)
+  reason        String? // rejection reason, suspension reason, etc
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// =====================================================================
+// STUDENT SCHEMA
+// =====================================================================
+
+enum Degree {
+  // Diploma & Vocational
+  DIPLOMA
+  ITI
+
+  // Undergraduate (UG) - General Streams
+  BA
+  BSC
+  BCOM
+
+  // Undergraduate (UG) - Professional & Technical
+  BTECH_BE
+  BCA
+  BBA_BMS
+  BED
+  LLB
+
+  // Undergraduate (UG) - Medical & Healthcare
+  MBBS
+  BDS
+  BAMS_BHMS
+  BSC_NURSING
+
+  // Postgraduate (PG) - General Streams
+  MA
+  MSC
+  MCOM
+
+  // Postgraduate (PG) - Professional & Technical
+  MTECH_ME
+  MCA
+  MBA_PGDM
+  MED
+  LLM
+
+  // Postgraduate (PG) - Medical
+  MD_MS
+
+  // Doctoral / Advanced Research
+  PHD
+  MPHIL
+  POST_DOC
+
+  // Catch-all
+  OTHER
+}
+
+// Only used for RTU Kota B.Tech students. Non-RTU students have no branch.
+enum Branch {
+  AE
+  CE
+  CHE @map("Ch.E")
+  CSE
+  EE
+  ECE
+  EIC
+  IT
+  ME
+  PE
+  PCE
+  PI  @map("P&I")
+}
+
+// NOTE: the Student row is created EMPTY right after signup (all onboarding fields null).
+// The app gates every page on isOnboardingComplete = false until the user submits the form.
+// A DB CHECK (see SQL) guarantees a row can only be flagged complete when the required fields are filled.
+
+model Student {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Basic
+  fullName     String? // display name used everywhere in the UI. Prefill from User.name, user can edit
+  profileImage String? // storage KEY only, never a URL. null = generate default avatar at read time
+  location     String? // exact label picked from the flattened autocomplete list, e.g. "Lucknow, UP, India". Validate against the list on the server
+
+  // college related
+  isRTUStudent   Boolean? // true = RTU Kota (university campus). null = not answered yet
+  collegeCode    String? // id from the institute dataset (AISHE code, internal code for the RTU Kota campus). null = typed college not in the list
+  // if isRTUStudent: server sets this, ignore the client value
+  collegeName    String? // snapshot of the name at selection time. if isRTUStudent: server autofills RTU Kota
+  course         Degree?
+  branch         Branch? // ONLY if isRTUStudent and course = BTECH_BE, otherwise must be null
+  graduationYear Int? // UI shows "1st/2nd/..." computed from it + course duration
+  crNo           String? // college roll no. Required if isRTUStudent and not 1st year (enforced in API, time-dependent)
+  rollNo         String? // RTU roll no. Can be blank if 1st year. If isRTUStudent it must contain UC. Store uppercase
+
+  // Contact (private, never expose publicly)
+  phone          String? // E.164 e.g. +919876543210
+  alternatePhone String? // E.164
+  alternateEmail String? // lowercase. NOT verified, never use for login or password reset
+
+  // Relations
+  socials              SocialLink[]
+  resumes              Resume[]
+  applications         Application[]
+  mentorshipRequests   MentorshipRequest[]
+  eventMemberships     EventRegistrationMember[]
+  eventInvitesReceived EventTeamInvite[]         @relation("EventInviteReceived")
+
+  // flags
+  isOnboardingComplete Boolean   @default(false)
+  isActive             Boolean   @default(true) // TODO: purpose to be defined by the owner. Login access is controlled by User.status, not this
+  alumniConvertedAt    DateTime? // set when the admin's bulk conversion turned this user into an alumni Partner. Row is kept as history
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Same roll/cr number can exist in two colleges, so uniqueness is per collegeCode.
+  // Custom colleges (collegeCode null) are not covered, since NULLs never collide.
+  @@unique([collegeCode, rollNo])
+  @@unique([collegeCode, crNo])
+  @@index([collegeCode, graduationYear])
+}
+
+model Resume {
+  id        String  @id @default(uuid())
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  name      String // "Frontend Dev Resume", "Design Resume"
+  fileKey   String // storage KEY in a PRIVATE bucket. Serve via short-lived signed URL. PDF only, random key
+  isPrimary Boolean   @default(false) // only ONE live primary per student (partial unique index in SQL)
+  deletedAt DateTime? // soft delete so old applications keep pointing at the file they used
+  createdAt DateTime  @default(now())
+
+  applications Application[]
+
+  @@unique([id, studentId]) // lets Application prove "this resume belongs to this student" with a composite FK
+  @@index([studentId])
+}
+
+// =====================================================================
+// SOCIAL LINK SCHEMA (shared by Student, Organization and Partner)
+// =====================================================================
+
+enum SocialPlatform {
+  LINKEDIN
+  X
+  PORTFOLIO
+  GITHUB
+  YOUTUBE
+  TELEGRAM
+  WHATSAPP
+  DISCORD
+  FACEBOOK
+  REDDIT
+  PRODUCTHUNT
+  WELLFOUND
+  CRUNCHBASE
+  UPWORK
+  FIVERR
+  TOPTAL
+  BEHANCE
+  DRIBBBLE
+  INSTAGRAM
+  PINTEREST
+  MEDIUM
+  ARTSTATION
+  LINKTREE
+  LEETCODE
+  CODEFORCES
+  KAGGLE
+  STACKOVERFLOW
+  RESEARCHGATE
+  GOOGLE_SCHOLAR
+  SPOTIFY
+  SUBSTACK
+  OTHER
+}
+
+// NOTE: validate url server-side: https only, and the host must match the platform
+// (javascript: and data: links are an XSS risk). Cap the number of links per owner in the API.
+model SocialLink {
+  id String @id @default(uuid())
+
+  platform   SocialPlatform
+  url        String
+  customName String? // required when platform = OTHER, null otherwise.
+
+  // exactly ONE of these three is set, the others are null (CHECK in SQL)
+  studentId String?
+  orgId     String?
+  partnerId String?
+  student   Student?      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  org       Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  partner   Partner?      @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([orgId])
+  @@index([partnerId])
+}
+
+// =====================================================================
+// SHARED VERIFICATION (Organization and Partner)
+// =====================================================================
+
+enum VerificationStatus {
+  DRAFT // onboarding in progress, editable
+  SUBMITTED // waiting for admin review, LOCKED for edits
+  APPROVED // can use the platform features of its role
+  REJECTED // editable again, can fix and resubmit (SUBMITTED). Admin sees the attempt count
+}
+
+enum ChangeRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED // owner withdrew it or replaced it
+}
+
+// Append-only log of every admin decision and every submission. Exactly one owner is set (CHECK in SQL).
+model VerificationHistory {
+  id             String        @id @default(uuid())
+  organizationId String?
+  partnerId      String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  partner        Partner?      @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  fromStatus   VerificationStatus? // null for the first row
+  toStatus     VerificationStatus
+  reviewedById String? // the admin; null when the owner itself submitted
+  reviewedBy   User?               @relation("VerificationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reason       String? // rejection reason, shown to the owner so they know what to fix
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([partnerId, createdAt])
+}
+
+// After first approval, changing a REVIEWED field does NOT touch the live row.
+// It creates a request, the owner keeps working with the approved data.
+// On approval, apply `changes` and mark APPROVED in ONE transaction.
+// Reviewed fields. Organization: logo, location, website, phone, foundingYear, size, industry, contactPersonName, contactPersonDesignation.
+//                 Partner: image, location, website, phone, contactPersonName, contactPersonDesignation, currentRole.
+// name is NEVER changeable. A new image/logo in `changes` is a PENDING upload: do not serve it publicly until approved, delete it if rejected.
+// A new contact-person ID file is used for the review only, delete it at the decision, never copy it to the live row.
+
+model ProfileChangeRequest {
+  id             String        @id @default(uuid())
+  organizationId String?
+  partnerId      String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  partner        Partner?      @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  changes Json // only whitelisted keys. Validate with Zod before saving
+  status  ChangeRequestStatus @default(PENDING) // ONE pending per owner (partial unique indexes in SQL)
+
+  reviewedById String?
+  reviewedBy   User?     @relation("ChangeReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt   DateTime?
+  reason       String? // rejection reason shown to the owner
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId, status])
+  @@index([partnerId, status])
+  @@index([status, createdAt]) // admin queue
+}
+
+// =====================================================================
+// ORGANIZATION SCHEMA (companies that post jobs / internships)
+// =====================================================================
+
+enum OrgSize {
+  SOLO // 1
+  SMALL // 2-10
+  MEDIUM // 11-50
+  LARGE // 51-200
+  ENTERPRISE // 201+
+}
+
+enum Industry {
+  // Core Tech & Business
+  TECHNOLOGY_AND_IT
+  MANAGEMENT_CONSULTING
+  BFSI // Banking, Financial Services & Insurance
+  MARKETING_AND_ADVERTISING
+  E_COMMERCE
+
+  // Engineering & Core Technical
+  ENGINEERING_AND_MANUFACTURING
+  CONSTRUCTION_AND_REAL_ESTATE
+  LOGISTICS_AND_SUPPLY_CHAIN
+
+  // Services & Professional Lines
+  HEALTHCARE_AND_PHARMA
+  EDUCATION_AND_EDTECH
+  LEGAL_SERVICES
+  MEDIA_AND_ENTERTAINMENT
+  HOSPITALITY_AND_TOURISM
+  DESIGN_AND_CREATIVE
+
+  // Catch-all
+  OTHER
+}
+
+// NOTE: the Organization row is created EMPTY right after signup (all onboarding fields null).
+// Until verificationStatus = APPROVED the org can only edit its profile, nothing else.
+// A DB CHECK (see SQL) requires the core fields once status is SUBMITTED or APPROVED.
+// One login per org: userId is unique. The admin checks the company background manually.
+
+model Organization {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Admin approval
+  verificationStatus VerificationStatus @default(DRAFT)
+  submissionCount    Int                @default(0) // times submitted for review. Cap resubmits (5), only the admin can reset
+  submittedAt        DateTime?
+  approvedAt         DateTime? // set on FIRST approval. Once set, name is locked forever (trigger in SQL)
+
+  // Basic
+  name     String? // prefill from User.name. Editable only until first approval, then LOCKED
+  logo     String? // storage KEY only. PNG/JPG/WebP only (no SVG), re-encode, cap size. REVIEWED field
+  banner   String? // storage KEY only. same file rules. free field
+  location String? // exact label from the flattened autocomplete list, validated server-side. REVIEWED field
+  website  String? // https only, normalized. REVIEWED field
+
+  // Contact (private, never expose publicly)
+  phone          String? // E.164. REVIEWED field
+  alternatePhone String? // E.164
+  alternateEmail String? // lowercase. NOT verified, never use for login or password reset
+
+  // Contact person + ID proof for the manual background check (all PRIVATE)
+  contactPersonName        String? // REVIEWED field
+  contactPersonDesignation String? // REVIEWED field
+  contactIdKey             String? // ID card of the contact person. storage KEY, PRIVATE bucket, admin-only.
+  // required to SUBMIT, deleted at the admin decision, null afterwards
+
+  // Profile (PLAIN TEXT only, no markdown/HTML. Escape on render)
+  tagline      String? // max 150 chars
+  about        String? // max 3000 chars
+  foundingYear Int? // REVIEWED field
+  size         OrgSize? // REVIEWED field
+  industry     Industry? // REVIEWED field
+
+  // Relations
+  socials             SocialLink[]
+  jobs                Job[]
+  verificationHistory VerificationHistory[]
+  changeRequests      ProfileChangeRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([verificationStatus]) // admin review queue
+}
+
+// =====================================================================
+// JOB SCHEMA
+// =====================================================================
+
+enum JobStatus {
+  DRAFT
+  PUBLISHED
+  PAUSED
+  CLOSED
+  EXPIRED
+  REMOVED // admin takedown. Row is kept so applicants keep their history
+}
+
+enum WorkMode {
+  ONSITE
+  REMOTE
+  HYBRID
+}
+
+enum JobType {
+  INTERNSHIP
+  FULL_TIME
+  PART_TIME
+  FELLOWSHIP
+}
+
+// NOTE: only APPROVED orgs with an ACTIVE user can publish. Jobs go live without admin review,
+// the admin can remove any job later (status = REMOVED, with reason).
+// NOTE: never hard-delete a job that has applications (Restrict below). Close it instead.
+// NOTE: core terms (title, type, mode, location, salary, duration, eligibility) are locked once the first application exists (trigger in SQL).
+
+model Job {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  title       String // max 150 chars
+  description String // PLAIN TEXT, max 10000. Skills, perks, selection process, salary details etc. all go here
+  location    String? // null if fully remote, required otherwise (CHECK in SQL). Label from the flattened list
+  workMode    WorkMode
+  jobType     JobType
+
+  // Salary: INR only, ONE number, whole rupees
+  // INTERNSHIP / PART_TIME / FELLOWSHIP = per MONTH. FULL_TIME = CTC per YEAR
+  salary            Int?
+  isSalaryDisclosed Boolean @default(true) // false => keep the value but NEVER return it from the API
+
+  // Eligibility (checked at apply time)
+  isRtuOnly         Boolean @default(false) // only students with isRTUStudent = true
+  minGraduationYear Int?
+  maxGraduationYear Int?
+
+  // Meta
+  openings       Int       @default(1)
+  durationMonths Int? // required for INTERNSHIP (CHECK in SQL)
+  deadline       DateTime?
+  status         JobStatus @default(DRAFT)
+  publishedAt    DateTime?
+  closedAt       DateTime?
+
+  // Admin takedown
+  removedAt     DateTime?
+  removedById   String?
+  removedBy     User?     @relation("JobRemovedBy", fields: [removedById], references: [id], onDelete: SetNull)
+  removalReason String? // shown to the org
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applications Application[]
+
+  @@unique([id, organizationId]) // lets Application carry a denormalized organizationId that is guaranteed correct
+  @@index([status, publishedAt(sort: Desc)]) // main listing: published jobs, newest first
+  @@index([organizationId, status])
+  @@index([deadline]) // for the expiry cron
+}
+
+// =====================================================================
+// APPLICATION SCHEMA
+// =====================================================================
+
+enum ApplicationStatus {
+  SUBMITTED
+  SHORTLISTED
+  INTERVIEWED
+  OFFERED
+  HIRED
+  REJECTED
+  WITHDRAWN
+}
+
+enum ApplicationActor {
+  STUDENT
+  ORGANIZATION
+  ADMIN
+  SYSTEM
+}
+
+model Application {
+  id             String @id @default(uuid())
+  studentId      String
+  jobId          String
+  organizationId String // denormalized from the job, for fast and safe org-side scoping. DB guarantees it matches the job
+  resumeId       String
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  job     Job     @relation(fields: [jobId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  // composite FK: the resume must belong to the same student. NoAction (not Restrict) so deleting a student still works
+  resume  Resume  @relation(fields: [resumeId, studentId], references: [id, studentId], onDelete: NoAction)
+
+  status       ApplicationStatus @default(SUBMITTED)
+  internalNote String? // org's PRIVATE note. NEVER return it to students
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  statusHistory ApplicationStatusHistory[]
+
+  // full unique on purpose: WITHDRAWN is final, a student can never re-apply to the same job
+  @@unique([studentId, jobId])
+  @@index([jobId, status])
+  @@index([organizationId, status])
+  @@index([studentId, createdAt]) // "my applications" page
+  @@index([resumeId])
+}
+
+// Append-only. Never update or delete these rows.
+model ApplicationStatusHistory {
+  id            String      @id @default(uuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  fromStatus ApplicationStatus? // null for the first row (creation)
+  toStatus   ApplicationStatus
+  actor      ApplicationActor
+
+  changedByUserId String? // null for SYSTEM
+  changedByUser   User?    @relation("ApplicationStatusChanger", fields: [changedByUserId], references: [id], onDelete: SetNull)
+  studentRemark   String? // VISIBLE to the student (e.g. rejection reason). Max 1000 chars
+  createdAt       DateTime @default(now())
+
+  @@index([applicationId, createdAt])
+}
+
+// =====================================================================
+// PARTNER SCHEMA (e-cells, colleges, entrepreneurs, mentors/speakers, alumni)
+// =====================================================================
+
+enum PartnerType {
+  ECELL // a college's e-cell (entity)
+  COLLEGE // a college or institute (entity)
+  ENTREPRENEUR // founder with one or more startups (individual)
+  MENTOR_SPEAKER // mentor or guest speaker (individual)
+  ALUMNI // former student (individual). Created by signup OR by the admin's bulk conversion
+}
+
+enum StartupStage {
+  IDEA
+  MVP
+  EARLY_TRACTION
+  SCALING
+}
+
+// NOTE: row is created EMPTY at signup, same pattern as Student and Organization.
+// Public (visible to everyone) only when verificationStatus = APPROVED AND User.status = ACTIVE AND isListed.
+// Phone, alternate contact, mentorContactEmail until a request is accepted, contact person and ID are NEVER public
+// All five types need admin approval. Only ECELL and COLLEGE upload an ID card of the contact person.
+
+model Partner {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  partnerType PartnerType // chosen at signup (or ALUMNI by conversion) and NEVER changes (trigger in SQL)
+
+  // Admin approval (same flow as Organization)
+  verificationStatus VerificationStatus @default(DRAFT)
+  submissionCount    Int                @default(0) // cap resubmits (5), only the admin can reset
+  submittedAt        DateTime?
+  approvedAt         DateTime? // set on FIRST approval. Identity fields are locked from then on (trigger in SQL)
+  convertedAt        DateTime? // ALUMNI only. Set by the admin conversion and never changed afterwards (trigger). Such a partner is APPROVED without the usual review
+
+  // Basic (all types)
+  name     String? // ECELL/COLLEGE: entity name. Others: full name. LOCKED after first approval
+  image    String? // logo (entities) or photo (individuals). storage KEY only. REVIEWED field
+  banner   String? // storage KEY only. free field
+  location String? // label from the flattened list. REVIEWED field
+  website  String? // https only. REVIEWED field
+  tagline  String? // plain text, max 150
+  about    String? // plain text, max 3000
+
+  // Contact (PRIVATE)
+  phone              String? // E.164. REVIEWED field. For entities: the contact person's number. Shared with a student only if the mentor ticks sharePhone
+  alternatePhone     String? // E.164
+  alternateEmail     String? // lowercase. NOT verified
+  mentorContactEmail String? // MENTOR_SPEAKER / ALUMNI only. The dedicated email the mentor chooses to share with accepted students. lowercase, NOT verified, default = alternateEmail 
+
+  // ECELL / COLLEGE only
+  contactPersonName        String? // REVIEWED field. Private
+  contactPersonDesignation String? // REVIEWED field. e.g. "President", "Faculty coordinator". Private
+  contactIdKey             String? // ID card of the contact person. storage KEY, PRIVATE bucket, admin-only.
+  // required to SUBMIT, deleted at the admin decision, null afterwards
+  foundingYear             Int?
+
+  // ECELL / COLLEGE / ALUMNI: from the AISHE dataset only
+  collegeCode String? // LOCKED after first approval
+  collegeName String? // snapshot of the name. LOCKED
+
+  // ALUMNI only
+  course         Degree? // LOCKED
+  graduationYear Int? // LOCKED
+
+  // MENTOR_SPEAKER / ALUMNI only
+  currentRole       String? // e.g. "Senior Engineer at Acme". A public claim, REVIEWED field
+  yearsOfExperience Int?
+  expertise         String[]  @default([]) // free text tags, max 10, each max 40 chars
+  industry          Industry? // main domain
+
+  // Visibility / requests
+  isListed            Boolean @default(false) /// false = hidden from public listings. Set true only when the profile is complete
+  isAcceptingRequests Boolean @default(false) // MENTOR_SPEAKER/ALUMNI: false = no new mentorship requests
+
+  // Relations
+  socials                       SocialLink[]
+  startups                      Startup[]
+  mentorshipRequestsAsRequester MentorshipRequest[]    @relation("MentorshipRequester")
+  mentorshipRequestsAsMentor    MentorshipRequest[]    @relation("MentorshipMentor")
+  collaborationRequests         CollaborationRequest[]
+  hostedEvents                  Event[]
+  verificationHistory           VerificationHistory[]
+  changeRequests                ProfileChangeRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([id, partnerType]) // lets Startup and MentorshipRequest prove the partner's type with a composite FK
+  @@index([partnerType, verificationStatus])
+  @@index([verificationStatus]) // admin review queue
+  @@index([collegeCode])
+}
+
+// ENTREPRENEUR only. Multiple per partner (cap 5 in the API).
+// Startups go live without review, like jobs. The admin can delete any of them.
+
+model Startup {
+  id          String      @id @default(uuid())
+  partnerId   String
+  partnerType PartnerType @default(ENTREPRENEUR) // CHECK = ENTREPRENEUR; composite FK makes the DB enforce it
+  partner     Partner     @relation(fields: [partnerId, partnerType], references: [id, partnerType], onDelete: Cascade)
+
+  name         String // max 120
+  description  String? // plain text, max 2000
+  logo         String? // storage KEY only
+  website      String? // https only
+  stage        StartupStage
+  industry     Industry
+  foundingYear Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([partnerId, name])
+  @@index([partnerId])
+}
+
+// =====================================================================
+// MENTORSHIP REQUESTS (student -> mentor/alumni, on-platform)
+// =====================================================================
+
+enum MentorshipStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED // student withdrew it
+  EXPIRED
+}
+
+// A student OR an alumni (APPROVED, ACTIVE) asks a mentor (MENTOR_SPEAKER or ALUMNI). Exactly one requester is set.
+// ACCEPTED => the requester receives Partner.mentorContactEmail, and the phone number only if the mentor ticked sharePhone.
+// Disclosure can't be undone: warn the mentor on accept.
+// Mentor sees the requester's name, collegeName, course, graduationYear, socials, message (for an alumni requester also currentRole if set). NOT phone/email.
+// Limits: expires after 14 days, 30 day cooldown after a decline, max 5 pending per requester (API, one transaction).
+// An alumni cannot request themselves (CHECK in SQL).
+
+model MentorshipRequest {
+  id                  String       @id @default(uuid())
+  // Exactly ONE requester: a student, or an alumni partner (CHECK in SQL)
+  studentId           String?
+  requesterAlumniId   String?
+  requesterAlumniType PartnerType? // copy of the requester's type. CHECK: ALUMNI; composite FK guarantees it matches
+  mentorId            String
+  mentorType          PartnerType // copied from the mentor. CHECK: MENTOR_SPEAKER or ALUMNI; composite FK guarantees it matches
+
+  student   Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  requester Partner? @relation("MentorshipRequester", fields: [requesterAlumniId, requesterAlumniType], references: [id, partnerType], onDelete: Cascade)
+  mentor    Partner  @relation("MentorshipMentor", fields: [mentorId, mentorType], references: [id, partnerType], onDelete: Cascade)
+
+  message      String // student's pitch, plain text, max 1000
+  status       MentorshipStatus @default(PENDING)
+  responseNote String? // mentor's short note, shown to the student, max 500
+  sharePhone   Boolean          @default(false) // set by the mentor on accept. Only valid when ACCEPTED
+  respondedAt  DateTime?
+  expiresAt    DateTime // createdAt + 14 days. Open request = status PENDING AND expiresAt > now(). A cron only tidies up
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([mentorId, status, createdAt]) // mentor inbox
+  @@index([studentId, createdAt])
+  @@index([studentId, mentorId, createdAt]) // cooldown after a decline (student requester)
+  @@index([requesterAlumniId, createdAt])
+  @@index([requesterAlumniId, mentorId, createdAt]) // cooldown after a decline (alumni requester)
+}
+
+// =====================================================================
+// COLLABORATION REQUESTS (partner <-> IIC admin)
+// =====================================================================
+
+enum CollaborationDirection {
+  INBOUND // partner -> IIC (admin)
+  OUTBOUND // IIC (admin) -> partner, created from the admin panel
+}
+
+enum CollaborationType {
+  ORGANIZE_EVENT // organize an event with IIC
+  COLLABORATE_ON_EVENT // collaborate on the partner's event
+  OTHER
+}
+
+enum CollaborationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED // the sender withdrew it
+}
+
+// Whoever did not send it responds: INBOUND is answered by the admin, OUTBOUND by the partner.
+// The conversation continues outside the platform. Cap each partner's pending inbound requests (3).
+
+model CollaborationRequest {
+  id        String  @id @default(uuid())
+  partnerId String
+  partner   Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  direction CollaborationDirection
+  type      CollaborationType
+
+  title        String // max 150
+  description  String // plain text, max 3000: what is proposed, audience, what is asked
+  proposedDate DateTime?
+
+  status        CollaborationStatus @default(PENDING)
+  responseNote  String? // reason or next steps, shown to the sender, max 1000
+  respondedById String?
+  respondedBy   User?               @relation("CollaborationResponder", fields: [respondedById], references: [id], onDelete: SetNull)
+  respondedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt]) // admin queue
+  @@index([partnerId, createdAt])
+}
+
+// ------------------------------------------------------------
+// PRISMA - STUDENT TO ALUMNI CONVERSION (NEW)
+// ------------------------------------------------------------
+
+enum ConversionBatchStatus {
+  RUNNING
+  COMPLETED
+  COMPLETED_WITH_ERRORS
+  CANCELLED
+}
+
+enum AlumniConversionStatus {
+  PENDING // selected, not processed yet
+  CONVERTED
+  FAILED // error stored, can be retried
+  SKIPPED // not eligible at processing time (suspended, not onboarded, deleted, ...)
+}
+
+// One row per click of the admin button. Only the admin can create it. Only ONE batch may be RUNNING (partial unique index in SQL).
+model AlumniConversionBatch {
+  id             String                @id @default(uuid())
+  triggeredById  String?
+  triggeredBy    User?                 @relation("ConversionBatchTrigger", fields: [triggeredById], references: [id], onDelete: SetNull)
+  graduationYear Int // every student whose Student.graduationYear equals this year is converted
+  status         ConversionBatchStatus @default(RUNNING)
+  totalCount     Int                   @default(0)
+  convertedCount Int                   @default(0)
+  failedCount    Int                   @default(0)
+  skippedCount   Int                   @default(0)
+  startedAt      DateTime              @default(now())
+  completedAt    DateTime?
+
+  items AlumniConversion[]
+
+  @@index([status])
+}
+
+// One row per student in a batch. This is also the audit record of the conversion. Never delete these rows.
+model AlumniConversion {
+  id      String                @id @default(uuid())
+  batchId String
+  batch   AlumniConversionBatch @relation(fields: [batchId], references: [id], onDelete: Restrict)
+  userId  String
+  user    User                  @relation("AlumniConversionUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  status        AlumniConversionStatus @default(PENDING)
+  error         String? // short reason for FAILED or SKIPPED. no stack traces
+  convertedAt   DateTime?
+  emailQueuedAt DateTime? // set in the SAME transaction as the conversion
+  emailSentAt   DateTime? // set by the email worker. null + old emailQueuedAt = retry
+  emailAttempts Int                    @default(0)
+
+  @@unique([batchId, userId])
+  @@index([batchId, status])
+  @@index([emailQueuedAt, emailSentAt])
+}
+
+// =====================================================================
+// EVENTS + REGISTRATIONS + TEAM INVITES + PAYMENTS  
+// =====================================================================
+
+// DESIGN RULES
+//   * Money is an Int in RUPEES (INR).
+//   * Image fields are storage KEYS (same rule as the rest of the schema). Videos are https links.
+//   * Only the ADMIN creates events 
+//   * "Upcoming / past" is DERIVED from `date`. It is not stored.
+//   * Events and registrations are never hard-deleted (Restrict). Cancel them instead.
+//   * Every RegistrationStatus change writes an EventRegistrationStatusHistory row in the SAME transaction.
+//   * No capacity, so there are no seats to hold and no payment timer. Payment is simply: unpaid -> PAID -> CONFIRMED.
+//   * Paid registrations are NON-REFUNDABLE by default. Refunds happen only when the ADMIN triggers them
+//     (event cancelled, or a manual refund). There is no student self-service refund.
+
+enum EventStatus {
+  DRAFT // admin is still editing, not public
+  PUBLISHED // public
+  CANCELLED // cancelled by the admin (refund job runs for paid registrations)
+}
+
+enum EventMode {
+  ONLINE
+  OFFLINE
+  HYBRID
+}
+
+enum ParticipationType {
+  INDIVIDUAL
+  TEAM
+}
+
+enum RegistrationStatus {
+  DRAFT // team being formed (invites allowed). Solo events skip this state
+  PENDING_PAYMENT // roster LOCKED (pending invites cancelled), waiting for the gateway webhook. Paid events only
+  CONFIRMED // free event: registered. Paid event: payment verified
+  CANCELLED // by the leader or the admin
+  EXPIRED // cron: DRAFT / PENDING_PAYMENT left over after registration closed
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED // leader withdrew it, roster locked, registration cancelled/expired, or the invitee joined another team
+}
+
+enum PaymentStatus {
+  CREATED // gateway order created, nothing paid yet
+  PAID
+  FAILED
+  REFUND_PENDING
+  REFUNDED
+}
+
+enum RegistrationActor {
+  STUDENT
+  ADMIN
+  SYSTEM // cron, webhook
+}
+
+// ---------------------------------------------------------------------
+// EVENT
+// ---------------------------------------------------------------------
+
+// description is MARKDOWN (the only markdown field in the schema). Store raw. Sanitize when rendering
+// (rehype-sanitize, raw HTML disabled, markdown images only from our own storage domain). Max 20000 chars.
+// eligibleYears: year of STUDY (1..6), computed from Student.graduationYear + course duration as of the event's
+// academic session. EMPTY ARRAY = all years. Do not store an "ALL" value.
+// isRtuOnly = false means "open to other colleges" (any college's student can register).
+// onlineLink is PRIVATE: return it only to CONFIRMED members.
+// feeAmount applies PER REGISTRATION (per team for TEAM events), 0 = free.
+// Once a PENDING_PAYMENT / CONFIRMED registration exists, fee / participationType / team sizes / eligibility are
+// locked (trigger in SQL).
+
+model Event {
+  id   String @id @default(uuid())
+  slug String @unique // url-friendly, generated from the title, never changes after publish
+
+  title         String // max 150
+  summary       String? // plain text, max 200, shown on cards
+  description   String // MARKDOWN, max 20000
+  poster        String? // storage KEY. required once PUBLISHED (CHECK)
+  galleryImages String[] @default([]) // storage KEYS, max 20, order = display order
+  videoLinks    String[] @default([]) // https only, host allowlist (youtube, drive...), max 10
+
+  mode       EventMode
+  venue      String? // required unless ONLINE
+  onlineLink String? // PRIVATE, https only
+
+  date DateTime // UTC in the DB, shown in IST. Past event = date < now()
+
+  // Eligibility (checked for EVERY member of a team)
+  eligibleYears Int[]   @default([]) // empty = all
+  isRtuOnly     Boolean @default(false) // same meaning as Job.isRtuOnly: Student.isRTUStudent = true
+
+  // Participation
+  participationType ParticipationType @default(INDIVIDUAL)
+  minTeamSize       Int? // TEAM only, >= 2
+  maxTeamSize       Int? // TEAM only, <= 10
+
+  // Registration
+  registrationEnabled  Boolean   @default(false) // false = info-only page (old events, external registration)
+  registrationOpensAt  DateTime?
+  registrationClosesAt DateTime? // null = open until `date`
+  feeAmount            Int       @default(0) // ruppees, per registration
+
+  status             EventStatus @default(DRAFT)
+  publishedAt        DateTime?
+  cancelledAt        DateTime?
+  cancellationReason String? // shown to registrants
+
+  createdById String?
+  createdBy   User?   @relation("EventCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  hostPartnerId String? // optional co-host (e-cell / college / mentor) for collaboration events
+  hostPartner   Partner? @relation(fields: [hostPartnerId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  registrations EventRegistration[]
+
+  @@index([status, date(sort: Desc)]) // public listing
+  @@index([hostPartnerId])
+}
+
+// ---------------------------------------------------------------------
+// REGISTRATION = one row per student (INDIVIDUAL) or per team (TEAM)
+// ---------------------------------------------------------------------
+
+// The leader creates it. A solo registration is a registration with ONE member (the leader).
+//
+// TEAM FLOW
+//   1. Leader creates the registration (DRAFT) with a teamName. The leader is the first member (isLeader).
+//   2. Leader invites students (EventTeamInvite) by their account EMAIL (same rule for every event).
+//      Invites exist only while the registration is DRAFT.
+//   3 Invitee sees the invite on the event page and accepts or declines. Accept = create a member row.
+//   4. When live members >= minTeamSize the leader proceeds: pending invites -> CANCELLED, roster locked.
+//      Free event -> CONFIRMED. Paid event -> PENDING_PAYMENT + gateway order.
+//
+// Leaving / removal / cancel / expiry set member.leftAt. No member rows are deleted. A student who rejoins gets a NEW member row.
+// feeAmount is a SNAPSHOT taken when payment starts. The amount sent to the gateway is always computed on the server.
+// A payment that arrives for a DRAFT / PENDING_PAYMENT / EXPIRED registration confirms it (no capacity, nothing to lose).
+// A payment that arrives for a CANCELLED registration is refunded automatically.
+
+model EventRegistration {
+  id      String @id @default(uuid())
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Restrict)
+
+  teamName String? // TEAM only. Unique per event, case-insensitive, among live registrations (SQL)
+
+  status       RegistrationStatus @default(DRAFT)
+  feeAmount    Int                @default(0) // rupees snapshot
+  confirmedAt  DateTime?
+  cancelledAt  DateTime?
+  cancelReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members       EventRegistrationMember[]
+  invites       EventTeamInvite[]
+  payments      Payment[]
+  statusHistory EventRegistrationStatusHistory[]
+
+  @@unique([id, eventId]) // lets members and invites carry a denormalized eventId that the DB guarantees is correct
+  @@index([eventId, status]) // admin list, expiry cron
+}
+
+// One row per person who is ON a registration (the leader, plus invitees who accepted).
+// DB guarantees: a student is in only ONE live registration per event (partial unique index in SQL),
+// and every registration has at most one live leader.
+
+model EventRegistrationMember {
+  id             String @id @default(uuid())
+  registrationId String
+  eventId        String // denormalized from the registration, DB guarantees it matches
+  studentId      String
+
+  registration EventRegistration @relation(fields: [registrationId, eventId], references: [id, eventId], onDelete: Cascade)
+  student      Student           @relation(fields: [studentId], references: [id], onDelete: Restrict)
+
+  isLeader    Boolean   @default(false)
+  joinedAt    DateTime  @default(now())
+  leftAt      DateTime? // left, was removed, or the registration was cancelled/expired. null = live
+  checkedInAt DateTime? // attendance, set by the admin on the day
+
+  @@index([studentId, joinedAt]) // "my registrations" page
+  @@index([eventId])
+  @@index([registrationId, leftAt])
+}
+
+// ---------------------------------------------------------------------
+// TEAM INVITE (leader -> student)
+// ---------------------------------------------------------------------
+
+// The leader types an EMAIL. The server trims + lowercases it and matches User.email (unique, verified at signup) to ONE Student
+// with: User.role = STUDENT, User.status = ACTIVE, emailVerifiedAt set, deletedAt null, isOnboardingComplete, and who passes the
+// event's eligibility (isRtuOnly, eligibleYears). It stores invitedStudentId. Never match on Student.alternateEmail (unverified).
+// The leader only ever sees name + college of the match, never contact data. The invitee must have signed up with THAT email.
+// Lookup errors are generic ("no eligible student found with this email") and rate limited, so this cannot be used to
+// enumerate students. The accept step is the safeguard against a mistyped email reaching a wrong person.
+// Re-inviting after DECLINED / CANCELLED flips the same row back to PENDING (unique key below).
+// On accept, in ONE transaction: re-check eligibility, create the member row, mark this invite ACCEPTED, and mark the student's
+// other PENDING invites for the same event CANCELLED.
+// Cap: live members + PENDING invites <= maxTeamSize (API).
+
+model EventTeamInvite {
+  id               String @id @default(uuid())
+  registrationId   String
+  eventId          String // denormalized from the registration, DB guarantees it matches
+  invitedStudentId String
+
+  registration   EventRegistration @relation(fields: [registrationId, eventId], references: [id, eventId], onDelete: Cascade)
+  invitedStudent Student           @relation("EventInviteReceived", fields: [invitedStudentId], references: [id], onDelete: Cascade)
+
+  status      InviteStatus @default(PENDING)
+  respondedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([registrationId, invitedStudentId])
+  @@index([invitedStudentId, eventId, status]) // event page: "do I have a pending invite for this event?"
+  @@index([registrationId, status]) // leader's team panel
+}
+
+// ---------------------------------------------------------------------
+// PAYMENT (many attempts per registration, at most ONE PAID)
+// ---------------------------------------------------------------------
+// Source of truth = the gateway WEBHOOK (signature verified), not the browser callback.
+// Never delete these rows.
+
+model Payment {
+  id             String            @id @default(uuid())
+  registrationId String
+  registration   EventRegistration @relation(fields: [registrationId], references: [id], onDelete: Restrict)
+
+  amount   Int // rupees, copied from registration.feeAmount at order creation
+  currency String        @default("INR")
+  status   PaymentStatus @default(CREATED)
+
+  gateway          String  @default("RAZORPAY")
+  gatewayOrderId   String  @unique
+  gatewayPaymentId String? @unique
+  method           String? // upi / card / netbanking, informational
+  failureReason    String? // short, no raw gateway payloads
+
+  paidAt         DateTime?
+  refundId       String?   @unique
+  refundedAmount Int       @default(0)
+  refundedAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([registrationId, status])
+  @@index([status, createdAt]) // reconciliation cron: stuck CREATED / REFUND_PENDING
+}
+
+// Idempotency + audit for gateway webhooks. Insert first, process after. A duplicate delivery hits the unique key and is ignored.
+
+model PaymentWebhookEvent {
+  id             String    @id @default(uuid())
+  gateway        String
+  gatewayEventId String
+  eventType      String
+  payload        Json
+  receivedAt     DateTime  @default(now())
+  processedAt    DateTime?
+  error          String?
+
+  @@unique([gateway, gatewayEventId])
+  @@index([processedAt])
+}
+
+// Append-only. Never update or delete these rows.
+model EventRegistrationStatusHistory {
+  id             String            @id @default(uuid())
+  registrationId String
+  registration   EventRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  fromStatus RegistrationStatus? // null for the first row
+  toStatus   RegistrationStatus
+  actor      RegistrationActor
+
+  changedByUserId String? // null for SYSTEM
+  changedByUser   User?   @relation("RegistrationStatusChanger", fields: [changedByUserId], references: [id], onDelete: SetNull)
+  reason          String?
+
+  createdAt DateTime @default(now())
+
+  @@index([registrationId, createdAt])
+}
+
+// =====================================================================
+// EXTERNAL OPPORTUNITIES  (append to l1.prisma)  
+// =====================================================================
+
+//   * Only role = ADMIN may create, edit, publish or archive these (API check). There is no createdById: one admin account,
+//     so updatedAt is the audit trail.
+//   * All text is PLAIN TEXT, never markdown or HTML.
+//   * "Active" is DERIVED, never stored:  status = PUBLISHED AND (deadline IS NULL OR deadline >= now()).
+//     Expired rows stay in the table and are just not listed. No expiry cron.
+//   * Listing order: isFeatured desc, then deadline asc with rolling (null) deadlines last.
+//   * eligibleYears is a display / filter HINT, never a gate (the student applies on the external site).
+//   * Do not add more than one new enum value without also updating the UI filter list.
+
+enum ExternalOpportunityType {
+  HACKATHON
+  COMPETITION
+  INTERNSHIP
+  FELLOWSHIP
+  SCHOLARSHIP
+  PROGRAM // accelerators, bootcamps, mentorship programs
+  OTHER
+}
+
+enum ExternalOpportunityStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED // admin pulled it early (dead link, duplicate, scam). Row is kept
+}
+
+// applyLink: https only, max 500 chars (CHECK). The APP normalizes it BEFORE saving: lowercase scheme + host, drop the
+// #fragment and utm_* params, strip a trailing slash. The unique index then blocks duplicates, and a unique index in SQL (lowercase scheme+host, path kept as typed) catches host-case variants
+// Cards never link straight to applyLink. They go through GET /go/:id, which does an atomic
+//   UPDATE ... SET "clickCount" = "clickCount" + 1
+// then redirects. Render outgoing links with rel="noopener noreferrer" and a small "you're leaving our site" hint.
+// clickCount is an APPROXIMATE popularity signal (bots and repeat clicks inflate it), not a unique-student count.
+// location: display only, required unless mode = REMOTE (CHECK in SQL). Not used for filtering.
+// eligibleYears: year of STUDY (1..6) like Event.eligibleYears. EMPTY ARRAY = all years.
+// deadline: null = rolling applications. startsAt: optional hackathon date / program start. No CHECK between the two,
+// some programs accept late applicants after they start.
+// Listing query: it matches status = PUBLISHED AND (deadline IS NULL OR deadline >= now()), ordered by isFeatured DESC, deadline ASC NULLS LAST. Both indexes are shaped for this and the type filter.
+
+model ExternalOpportunity {
+  id String @id @default(uuid())
+
+  title            String // max 150
+  organizerName    String // max 100, e.g. "Google", "MLH"
+  shortDescription String // max 300
+  applyLink        String @unique // https only, max 500, normalized by the app
+
+  type     ExternalOpportunityType
+  mode     WorkMode
+  location String? // max 100
+
+  eligibleYears Int[] @default([]) // empty = all years
+
+  deadline DateTime? // null = rolling
+  startsAt DateTime?
+
+  status      ExternalOpportunityStatus @default(DRAFT)
+  isFeatured  Boolean                   @default(false)
+  clickCount  Int                       @default(0)
+  publishedAt DateTime? // required once PUBLISHED (CHECK)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, deadline]) // main listing
+  @@index([status, type]) // type filter
+}
+
+// =====================================================================
+// INITIATIVES: OUR INNOVATIONS + OUR INCUBATIONS  (append to l1.prisma)
+// =====================================================================
+// The initiatives page has three sections: Our Events (Event, above), Our Innovations and Our Incubations (below).
+//   * Only role = ADMIN may create, edit, publish or delete these (API check). There is no createdById: one admin account,
+//     so updatedAt is the audit trail.
+//   * Public = status PUBLISHED. DRAFT is visible to the admin only.
+//   * HARD DELETE is allowed, nothing references these tables. The API deletes the storage files (thumbnail, gallery, logo)
+//     in the same request, a cleanup job removes any orphans. Deleting frees the slug.
+//   * All text is PLAIN TEXT, except Innovation.description which is MARKDOWN (same sanitize rules as Event.description).
+//   * Images and logos are storage KEYS. Every link is https only.
+//   * Listing order: displayOrder ASC (lower = first), ties broken by createdAt DESC.
+//   * isFeatured = show in the homepage highlight strip (cap ~6 per table, checked in the API). It does NOT change the listing order.
+//   * Do not reuse Startup for incubations. Startup is self-managed by ENTREPRENEUR partners, these rows are admin-curated and
+//     the founders are usually not platform users.
+
+enum InitiativeStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum PatentStatus {
+  NONE
+  FILED // application filed, under review
+  GRANTED
+}
+
+// ---------------------------------------------------------------------
+// INNOVATION
+// ---------------------------------------------------------------------
+// Card (always): thumbnail, title, shortDescription, members, year, patentStatus, demoUrl.
+// Detail page (only when hasDetailPage = true): description (markdown), galleryImages, videoLinks.
+// description is REQUIRED when hasDetailPage = true (CHECK). When hasDetailPage = false the description / gallery / videos may
+// still be stored (hidden), so flipping the flag never loses data.
+// slug: url-friendly, generated from the title, never changes after first publish (trigger in SQL). Set even for card-only
+// innovations so promoting one to a detail page keeps a stable url.
+// thumbnail: the card image. Storage KEY. required once PUBLISHED (CHECK).
+// galleryImages: storage KEYS, max 20, array order = display order. videoLinks: https only, host allowlist (youtube, drive...)
+// enforced by the API, max 10.
+// demoUrl: the card's "Demo" button. Either a website (software) or a video link (hardware). https only, max 500, any host,
+// so NO host allowlist. Render with rel="noopener noreferrer". A video may also sit in videoLinks, the two are independent.
+// members: display names, plain text, order = display order, max 10 entries each max 80 chars. At least 1 once PUBLISHED.
+// year: year it was built / completed (2000..2100 CHECK, the API rejects a future year).
+
+model Innovation {
+  id   String @id @default(uuid())
+  slug String @unique
+
+  title            String // max 150
+  shortDescription String // max 200, shown on cards
+  thumbnail        String? // storage KEY. required once PUBLISHED (CHECK)
+
+  hasDetailPage Boolean  @default(false)
+  description   String? // MARKDOWN, max 20000. required when hasDetailPage (CHECK)
+  galleryImages String[] @default([]) // storage KEYS, max 20
+  videoLinks    String[] @default([]) // https only, max 10
+
+  members String[] @default([]) // max 10, each max 80
+  year    Int
+
+  demoUrl      String? // https only, max 500
+  patentStatus PatentStatus @default(NONE)
+
+  displayOrder Int     @default(0) // lower first
+  isFeatured   Boolean @default(false)
+
+  status      InitiativeStatus @default(DRAFT)
+  publishedAt DateTime? // required once PUBLISHED (CHECK)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, displayOrder]) // public listing
+  @@index([status, isFeatured]) // homepage highlight strip
+}
+
+// ---------------------------------------------------------------------
+// INCUBATION
+// ---------------------------------------------------------------------
+// Card only. An incubation NEVER has a dedicated page, so there is no slug, no markdown and no gallery.
+// logo: storage KEY. required once PUBLISHED (CHECK).
+// website: optional, https only, max 500.
+// founders: display names, plain text, order = display order, max 10 entries each max 80 chars. At least 1 once PUBLISHED.
+// incubatedYear: year the startup joined the incubator (2000..2100 CHECK, the API rejects a future year).
+// sector: reuses Industry (add a value there if one is missing, do not create a second enum).
+// title is unique. @unique blocks exact duplicates, a case-insensitive unique index in SQL catches case variants.
+
+model Incubation {
+  id String @id @default(uuid())
+
+  title            String  @unique // max 150
+  shortDescription String // max 200, shown on cards
+  logo             String? // storage KEY. required once PUBLISHED (CHECK)
+  website          String? // https only, max 500
+
+  founders      String[] @default([]) // max 10, each max 80
+  incubatedYear Int
+  sector        Industry
+
+  displayOrder Int     @default(0) // lower first
+  isFeatured   Boolean @default(false)
+
+  status      InitiativeStatus @default(DRAFT)
+  publishedAt DateTime? // required once PUBLISHED (CHECK)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, displayOrder]) // public listing
+  @@index([status, isFeatured]) // homepage highlight strip
+}

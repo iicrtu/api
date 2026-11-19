@@ -1,0 +1,24 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "Backend API for the IIC website. It is an Express application backed by\r MongoDB. The frontend lives in the sibling [`iic`](../iic/) directory.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iicrtu/iic-api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/iicrtu/iic-api/issues"
+  },
+  "homepage": "https://github.com/iicrtu/iic-api#readme"
+}
